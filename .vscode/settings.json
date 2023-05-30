@@ -1,10 +1,15 @@
 {
-    "python.formatting.provider": "black",
-    "[python]": {
-        "editor.formatOnSave": true
-    },
-    "python.formatting.blackArgs": [
-        "--line-length",
-        "100"
-    ]
+  "python.formatting.provider": "black",
+  "[python]": {
+    "editor.formatOnSave": true
+  },
+  "python.formatting.blackArgs": ["--line-length", "100"],
+  "cSpell.words": [
+    "blurple",
+    "discordbot",
+    "dynaconf",
+    "levelname",
+    "nextcord"
+  ],
+  "python.analysis.extraPaths": ["./config"]
 }

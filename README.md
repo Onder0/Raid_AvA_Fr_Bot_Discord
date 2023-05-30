@@ -1,3 +1,25 @@
+DiscordBot
+Prerequisites
+python >= 3.9 pip
+
+How to setup
+pip install -r requirements.txt
+
+How to run in development mode
+python bot.py
+
+or
+
+ENV_FOR_DYNACONF=development python bot.py
+
+How to run in production mode
+ENV_FOR_DYNACONF=production python bot.py
+
+don't forget to add :
+-secrets file
+-discordbot.json
+-database
+
 # Discord Bot Template
 
 [![Discord](https://img.shields.io/discord/819650821314052106?color=7289DA&logo=discord&logoColor=white)](https://discord.gg/fPrdqh3Zfu "Dev Pro Tips Discussion & Support Server")
@@ -37,7 +59,7 @@ The contents should look something like this (where the part after `=` is the to
 DISCORD_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-If you require additional API keys or variables specific to an enviroment, they should also be added here. You can access them by adding a line such as `GUILD_ID = os.getenv("GUILD_ID", "")` to `config.py`.
+If you require additional API keys or variables specific to an environment, they should also be added here. You can access them by adding a line such as `GUILD_ID = os.getenv("GUILD_ID", "")` to `config.py`.
 
 ## Heroku
 
