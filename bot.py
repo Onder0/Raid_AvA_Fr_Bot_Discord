@@ -6,7 +6,7 @@ from config.logger import logger
 logger.info("=====================================")
 logger.info("========== Starting bot... ==========")
 logger.info("=====================================")
-logger.info(f"Environment: {settings.ENV_FOR_DYNACONF}\n")
+logger.info(f"Environment: {settings.ENV_FOR_DYNACONF}")
 
 if settings.ENV_FOR_DYNACONF == "DEVELOPMENT":  
   import shutil
@@ -25,8 +25,8 @@ initial_extensions = [
 
 @bot.event
 async def on_ready():
-  logger.info(f"Database is : {settings.database}")
-  logger.info("Success: Bot is connected to Discord\n")
+  logger.info(f"Database {settings.database} launched")
+  logger.info("Bot is connected to Discord")
 
 
 if __name__ == '__main__':
