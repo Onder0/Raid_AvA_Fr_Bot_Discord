@@ -21,13 +21,13 @@ bot = commands.Bot(
 
 initial_extensions = [
   "cogs.ping.Ping",
+  "cogs.verif.Verif",
 ]
 
 @bot.event
 async def on_ready():
   logger.info(f"Database {settings.database} launched")
   logger.info("Bot is connected to Discord")
-
 
 if __name__ == '__main__':
   for extension in initial_extensions:

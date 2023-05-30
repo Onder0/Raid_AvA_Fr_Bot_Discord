@@ -9,7 +9,7 @@
     "discordbot",
     "dynaconf",
     "levelname",
-    "nextcord"
-  ],
-  "python.analysis.extraPaths": ["./config"]
+    "nextcord",
+    "verif"
+  ]
 }

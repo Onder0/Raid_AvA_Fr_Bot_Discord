@@ -4,13 +4,13 @@ from config import settings
 from config.logger import logger
 import asyncio
 
-class Ping(commands.Cog,):
+class Ping(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_ready(self):
-        logger.info("Ping.py is ready!\n")
+        logger.info("Ping.py is ready!")
 
     @slash_command(name="ping", description="retourne la latence du bot.")
     async def ping(self, 
