@@ -1,2 +1,2 @@
 nextcord==2.4.2
-peewee==3.16.0
+peewee==3.16.2
