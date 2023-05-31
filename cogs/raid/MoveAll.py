@@ -28,7 +28,7 @@ class MoveAll(commands.Cog):
     if interaction.user.voice is None:
         error_msg = await interaction.followup.send(embed=embed_error("","Vous devez être connecté à un canal vocal pour utilisé la commande /moveall"))
         logger.warning(f"Échec: {interaction.user.display_name} n'était pas connecté à un vocal.\n")
-        await asyncio.sleep(15)
+        await asyncio.sleep(10)
         await error_msg.delete()
         return
 
@@ -37,7 +37,7 @@ class MoveAll(commands.Cog):
     if channel == chan_actuel:
         error_msg = await interaction.followup.send(embed=embed_error("","Vous devez sélectionné un channel différent du votre !"))
         logger.warning(f"Échec: {interaction.user.display_name} a essayé de moveall vers le vocal où il se trouve.\n")
-        await asyncio.sleep(15)
+        await asyncio.sleep(10)
         await error_msg.delete()
         return
     

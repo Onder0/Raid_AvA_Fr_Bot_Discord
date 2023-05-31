@@ -61,7 +61,7 @@ class Bonus(commands.Cog):
       else:
           message += f"\n:warning: Personne ne se trouvais dans le chan {chan_attente.mention} ! :warning:"
           logger.info(f"- Il n'y avait personne dans {chan_attente}")
-          embed = embed_error("",message)
+          embed = embed_error("", message)
       await interaction.followup.send(embed=embed_success("",f"Les {role.mention} ont bien été attribués."))
 
     logger.info(f"Succès !\n")

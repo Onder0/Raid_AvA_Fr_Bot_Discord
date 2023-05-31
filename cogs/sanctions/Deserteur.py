@@ -29,24 +29,26 @@ class Deserteur(commands.Cog):
     
     chan_ticket = interaction.guild.get_channel(settings.chan_ticket)
 
+    raider = nextcord.utils.get(interaction.guild.roles, id = settings.raider)
     deserteur1 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur1)
     deserteur2 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur2)
     deserteur3 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur3)
-    raider = nextcord.utils.get(interaction.guild.roles, id = settings.raider)
 
     result_deserteur, created = Model_NoShow.get_or_create(id_membre = personne.id)
     setattr(result_deserteur, 'nom_membre', personne.display_name)
+
     count = getattr(result_deserteur, 'no_show_count')
     if count == 3 :
-        error_msg = await interaction.followup.send(embed_error(""f"Vous avez effectuer cette commande sur une personne déjà {deserteur3} !"))
+        error_msg = await interaction.followup.send(embed_error("", f"Vous essayez de /deserteur sur une personne déjà {deserteur3.mention} !"))
         logger.warning(f"Échec: La commande a été exécutée sur une personne déjà deserteur 3 !\n")
-        await asyncio.sleep(15)
+        await asyncio.sleep(10)
         await error_msg.delete()
         return
-    total = getattr(result_deserteur, 'no_show_total')
     count += 1
-    total += 1
     setattr(result_deserteur, 'no_show_count', count)
+
+    total = getattr(result_deserteur, 'no_show_total')
+    total += 1
     setattr(result_deserteur, 'no_show_total', total)
 
     # Supprime les anciens message mentionnant la personne si il y en a !
@@ -75,16 +77,20 @@ class Deserteur(commands.Cog):
             montant = "250k"
             role = deserteur1
         
-    logger.info(f"+ {personne.display_name} est maintenant {role}.")  
-    message += f"{personne.id} est maintenant {role.mention}. Il a déserté {total} fois !\n"
+    logger.info(f"+ {personne.display_name} est maintenant {role}.") 
+
+    message += f"{personne.mention} est maintenant {role.mention}. (`{total}` "
+    if total == 1 : message += "ère désertion) !\n"
+    else : message += "ème désertions)\n"
+    
     if count == 3 :
-        message += f"=>Il doit payer {montant} ! Il **DOIT** ouvrir un ticket et payer son amende pour avoir à nouveau accès au serveur !\n"
+        message += f"=>Il doit payer {montant} !\nIl **DOIT** {chan_ticket.mention} et payer son amende pour avoir à nouveau accès au serveur !\n"
     else :
-        message += f" Il doit payer {montant} ! => Ouvrez un ticket pour payer votre amende.\n"
-    message += f"=> {chan_ticket.mention}"
+        message += f" Il doit payer {montant} !\n=> {chan_ticket.mention} pour payer votre amende.\n"
 
     result_deserteur.save()
     await interaction.followup.send(embed=embed_warning("", message))
+    await ghostPing(chan_deserteur, personne)
 
     Model_Sanctions.create(
         id_membre = personne.id,
@@ -110,41 +116,38 @@ class Deserteur(commands.Cog):
     if not await verif_chan(interaction, chan_commandes) : return
     
     result_deserteur, created = Model_NoShow.get_or_create(id_membre = personne.id)
-
     desertions = getattr(result_deserteur, "no_show_total")
+
     logger.info(f"+ {personne.display_name} a déserté {desertions} fois.")
-    await interaction.followup.send(f"{personne.display_name} a déjà déserté {desertions} fois !")
+    await interaction.followup.send(embed=embed_warning("", f"{personne.mention} a déjà déserté `{desertions} fois` !"))
 
     logger.info("Succès !\n")
 
 
-async def pardon(user, sanctionne, guild):
-  id_raider = settings.raider
-  role_ids = settings.deserteur
-  deserteur1 = nextcord.utils.get(guild.roles, id = role_ids.get("1"))
-  deserteur2 = nextcord.utils.get(guild.roles, id = role_ids.get("2"))
-  deserteur3 = nextcord.utils.get(guild.roles, id = role_ids.get("3"))
-  raider = nextcord.utils.get(guild.roles, id = id_raider)
+async def pardon(interaction, personne):
+  raider = nextcord.utils.get(interaction.guild.roles, id = settings.raider)
+  deserteur1 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur1)
+  deserteur2 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur2)
+  deserteur3 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur3)
 
-  result_deserteur = Model_NoShow.get(id_membre = sanctionne.id)
-  setattr(result_deserteur, 'nom_membre', sanctionne.display_name)
+  result_deserteur = Model_NoShow.get(id_membre = personne.id)
+  setattr(result_deserteur, 'nom_membre', personne.display_name)
   count = getattr(result_deserteur, 'no_show_count')
 
   setattr(result_deserteur, 'no_show_count', 0)
   setattr(result_deserteur, "dernier_pardon", datetime.datetime.now(tz=pytz.timezone('Europe/Paris')))
-  setattr(result_deserteur, "id_auteur_pardon", user.id)
-  setattr(result_deserteur, "nom_auteur_pardon", user.display_name)
+  setattr(result_deserteur, "id_auteur_pardon", interaction.user.id)
+  setattr(result_deserteur, "nom_auteur_pardon", interaction.user.display_name)
   result_deserteur.save()
   
-  
   if count == 3 : 
-      await sanctionne.remove_roles(deserteur3)
-      await sanctionne.add_roles(raider)
+      await personne.remove_roles(deserteur3)
+      await personne.add_roles(raider)
       logger.info(f"+ {deserteur3} a été enlevé et le {raider} a été ajouté !")
   else :
       if count == 1 : role = deserteur1
       if count == 2 : role = deserteur2
-      await sanctionne.remove_roles(role)
+      await personne.remove_roles(role)
       logger.info(f"+ {role} à été enlevé !")
 
 def setup(bot):

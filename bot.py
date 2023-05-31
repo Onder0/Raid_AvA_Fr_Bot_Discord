@@ -1,6 +1,9 @@
+from utils import *
 from config import *
 import nextcord
 from nextcord.ext import commands
+
+
 
 logger.info("=====================================")
 logger.info("========== Starting bot... ==========")
@@ -20,6 +23,8 @@ bot = commands.Bot(
 
 initial_extensions = [
   # "cogs.bank.",
+  # "cogs.loops.ClearQuotidien",
+  # "cogs.loops.UpdateRaids",
   "cogs.management.Invitation",
 	"cogs.management.Rank",
   "cogs.raid.Bonus",
@@ -30,14 +35,22 @@ initial_extensions = [
 ]
 
 @bot.event
-async def on_ready():
+async def on_ready(bot):
   logger.info(f"Database {settings.database} launched")
   await bot.change_presence(activity=nextcord.Game(name="Attend un Raid !"))
   logger.info("Bot is connected to Discord !")
 
+@bot.event
+async def on_raw_reaction_add(payload):
+  if (payload.user_id == settings.bot_id or payload.user_id == settings.raid_helper_id) : return
+  # Confirmation d'un payement : 
+  if payload.emoji.name == "✅" and (payload.channel_id == settings.chan_sanction or payload.channel_id == settings.chan_deserteur):
+    await payement(bot, payload)
+
+
 if __name__ == '__main__':
   for extension in initial_extensions:
     bot.load_extension(extension)
-
-
-bot.run(settings.token, reconnect=True)
+  
+  
+bot.run(settings.token, reconnect=True, bot=bot)
