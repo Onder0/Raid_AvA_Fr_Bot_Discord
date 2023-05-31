@@ -26,6 +26,7 @@ don't forget to add :
 [![Powered by Nextcord](https://custom-icon-badges.herokuapp.com/badge/-Powered%20by%20Nextcord-0d1620?logo=nextcord)](https://github.com/nextcord/nextcord "Powered by Nextcord Python API Wrapper")
 
 This repo is a template for easy creation of maintainable Python Discord bots.
+https://github.com/DenverCoder1/discord-bot-template
 
 The library used is [Nextcord](https://github.com/nextcord/nextcord), a maintained fork of Discord.py.
 

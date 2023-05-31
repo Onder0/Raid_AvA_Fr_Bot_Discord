@@ -1,7 +1,6 @@
+from config import *
 import nextcord
 from nextcord.ext import commands
-from config import settings
-from config.logger import logger
 
 logger.info("=====================================")
 logger.info("========== Starting bot... ==========")
@@ -15,19 +14,26 @@ if settings.ENV_FOR_DYNACONF == "DEVELOPMENT":
 bot = commands.Bot(
   command_prefix=settings.command_prefix,
   intents=nextcord.Intents.all(),
-  application_id=settings.guild_id
-  #guilds=[settings.guild]
+  application_id=settings.application_id,
+  # guilds=[settings.guild_id]
 )
 
 initial_extensions = [
-  "cogs.ping.Ping",
-  "cogs.verif.Verif",
+  # "cogs.bank.",
+  "cogs.management.Invitation",
+	"cogs.management.Rank",
+  "cogs.raid.Bonus",
+  "cogs.raid.MoveAll",
+	"cogs.raid.Stream",
+	"cogs.sanctions.Deserteur",
+  "cogs.sanctions.Sanction",
 ]
 
 @bot.event
 async def on_ready():
   logger.info(f"Database {settings.database} launched")
-  logger.info("Bot is connected to Discord")
+  await bot.change_presence(activity=nextcord.Game(name="Attend un Raid !"))
+  logger.info("Bot is connected to Discord !")
 
 if __name__ == '__main__':
   for extension in initial_extensions:
