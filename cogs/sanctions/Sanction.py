@@ -3,13 +3,13 @@ from config import *
 import nextcord
 from nextcord import SlashOption, slash_command, Interaction
 from nextcord.ext import commands
-from cogs.sanctions.Model_Sanction import Model_Sanctions
+from cogs.sanctions.Model_Sanction import Sanctions
 
 
 class Sanction(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    Model_Sanctions.create_table()
+    Sanctions.create_table()
 
   @commands.Cog.listener()
   async def on_ready(self):
@@ -29,7 +29,7 @@ class Sanction(commands.Cog):
     
     chan_ticket = interaction.guild.get_channel(settings.chan_ticket)
 
-    Model_Sanctions.create(
+    Sanctions.create(
         id_membre = personne.id,
         nom_membre = personne.display_name,
         id_auteur = interaction.user.id,
@@ -41,8 +41,8 @@ class Sanction(commands.Cog):
     await personne.add_roles(role)
     logger.info(f"+ La sanction et le rôle ont bien été ajoutés.")
 
-    await interaction.followup.send(embed=embed_success("",f"{personne.mention}, tu as été sanctionné pour `{sanction}`\n"
-                            f"Tu dois payer `{montant} silvers` au nextcord via le ticket sanction => {chan_ticket.mention} !"))
+    await interaction.followup.send(embed=embed_error("",f"{personne.mention}, tu as été sanctionné pour `{sanction}`\n"
+                            f"Tu dois payer `{montant} silvers` au discord => {chan_ticket.mention} !"))
     logger.info("Succès !\n")
 
 

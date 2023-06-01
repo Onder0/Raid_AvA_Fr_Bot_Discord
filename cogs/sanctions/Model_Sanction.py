@@ -3,7 +3,7 @@ import pytz
 from peewee import *
 from database.database import database
 
-class Model_Sanctions(Model):
+class Sanctions(Model):
     date = DateTimeField(default=datetime.datetime.now(tz=pytz.timezone('Europe/Paris')))
     id_membre = TextField(default="")
     nom_membre = TextField(default="")

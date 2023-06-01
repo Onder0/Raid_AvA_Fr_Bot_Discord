@@ -3,13 +3,13 @@ from config import *
 import nextcord
 from nextcord import SlashOption, slash_command, Interaction
 from nextcord.ext import commands
-from cogs.sanctions.Model_NoShow import Model_NoShow
-from cogs.sanctions.Model_Sanction import Model_Sanctions
+from cogs.sanctions.Model_NoShow import NoShow
+from cogs.sanctions.Model_Sanction import Sanctions
 
 class Deserteur(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    Model_NoShow.create
+    NoShow.create_table()
 
   @commands.Cog.listener()
   async def on_ready(self):
@@ -34,12 +34,12 @@ class Deserteur(commands.Cog):
     deserteur2 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur2)
     deserteur3 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur3)
 
-    result_deserteur, created = Model_NoShow.get_or_create(id_membre = personne.id)
+    result_deserteur, created = NoShow.get_or_create(id_membre = personne.id)
     setattr(result_deserteur, 'nom_membre', personne.display_name)
 
     count = getattr(result_deserteur, 'no_show_count')
     if count == 3 :
-        error_msg = await interaction.followup.send(embed_error("", f"Vous essayez de /deserteur sur une personne déjà {deserteur3.mention} !"))
+        error_msg = await interaction.followup.send(embed=embed_error("", f"Vous essayez de /deserteur sur une personne déjà {deserteur3.mention} !"))
         logger.warning(f"Échec: La commande a été exécutée sur une personne déjà deserteur 3 !\n")
         await asyncio.sleep(10)
         await error_msg.delete()
@@ -53,8 +53,13 @@ class Deserteur(commands.Cog):
 
     # Supprime les anciens message mentionnant la personne si il y en a !
     async for message in chan_deserteur.history(limit=None):
-        if personne in message.mentions:
-            await message.delete()
+      if message.embeds: 
+        print("embed trouvé")
+        embed = message.embeds[0]
+        if isinstance(embed.description, str):
+            match = re.search(r'<@(\d+)>', embed.description)
+            if match.group(1) and int(match.group(1)) == personne.id:
+              await message.delete()
 
     message = ""    
     montant = ""
@@ -89,10 +94,10 @@ class Deserteur(commands.Cog):
         message += f" Il doit payer {montant} !\n=> {chan_ticket.mention} pour payer votre amende.\n"
 
     result_deserteur.save()
-    await interaction.followup.send(embed=embed_warning("", message))
+    await interaction.followup.send(embed=embed_error("", message))
     await ghostPing(chan_deserteur, personne)
 
-    Model_Sanctions.create(
+    Sanctions.create(
         id_membre = personne.id,
         nom_membre = personne.display_name,
         id_auteur = interaction.user.id,
@@ -115,11 +120,11 @@ class Deserteur(commands.Cog):
     chan_commandes =  interaction.guild.get_channel(settings.chan_commandes)
     if not await verif_chan(interaction, chan_commandes) : return
     
-    result_deserteur, created = Model_NoShow.get_or_create(id_membre = personne.id)
+    result_deserteur, created = NoShow.get_or_create(id_membre = personne.id)
     desertions = getattr(result_deserteur, "no_show_total")
 
     logger.info(f"+ {personne.display_name} a déserté {desertions} fois.")
-    await interaction.followup.send(embed=embed_warning("", f"{personne.mention} a déjà déserté `{desertions} fois` !"))
+    await interaction.followup.send(embed=embed_warning("", f"{personne.mention} a déjà déserté `{desertions}` fois !"))
 
     logger.info("Succès !\n")
 
@@ -130,14 +135,14 @@ async def pardon(interaction, personne):
   deserteur2 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur2)
   deserteur3 = nextcord.utils.get(interaction.guild.roles, id = settings.deserteur3)
 
-  result_deserteur = Model_NoShow.get(id_membre = personne.id)
+  result_deserteur, created = NoShow.get_or_create(id_membre = personne.id)
   setattr(result_deserteur, 'nom_membre', personne.display_name)
   count = getattr(result_deserteur, 'no_show_count')
 
   setattr(result_deserteur, 'no_show_count', 0)
   setattr(result_deserteur, "dernier_pardon", datetime.datetime.now(tz=pytz.timezone('Europe/Paris')))
-  setattr(result_deserteur, "id_auteur_pardon", interaction.user.id)
-  setattr(result_deserteur, "nom_auteur_pardon", interaction.user.display_name)
+  setattr(result_deserteur, "id_auteur_pardon", interaction.id)
+  setattr(result_deserteur, "nom_auteur_pardon", interaction.display_name)
   result_deserteur.save()
   
   if count == 3 : 

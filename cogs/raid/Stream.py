@@ -3,12 +3,12 @@ from config import *
 import nextcord
 from nextcord import SlashOption, slash_command, Interaction
 from nextcord.ext import commands
-from cogs.raid.Model_Streamer import Model_Streamer
+from cogs.raid.Model_Streamer import Streamer
 
 class Stream(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    Model_Streamer.create_table()
+    Streamer.create_table()
 
   @commands.Cog.listener()
   async def on_ready(self):
@@ -32,7 +32,7 @@ class Stream(commands.Cog):
     logger.info(f"+ {streamer} ajouté à {personne.display_name}")
 
     # Ajout du membre dans la DB Streamer
-    result_streamer, created = Model_Streamer.get_or_create(id_membre = personne.id)
+    result_streamer, created = Streamer.get_or_create(id_membre = personne.id)
     setattr(result_streamer, 'nom_membre', personne.display_name)
     result_streamer.save()
     logger.info(f"+ Ajout de {personne.display_name} dans la DB Streamer")

@@ -23,19 +23,20 @@ bot = commands.Bot(
 
 initial_extensions = [
   # "cogs.bank.",
-  # "cogs.loops.ClearQuotidien",
-  # "cogs.loops.UpdateRaids",
+  "cogs.loops.ClearQuotidien",
+  "cogs.loops.UpdateRaids",
   "cogs.management.Invitation",
 	"cogs.management.Rank",
+  "cogs.misc.Misc", # Endroit pour mettre des commandes à usage unique principalement.
   "cogs.raid.Bonus",
   "cogs.raid.MoveAll",
 	"cogs.raid.Stream",
 	"cogs.sanctions.Deserteur",
-  "cogs.sanctions.Sanction",
+  "cogs.sanctions.Sanction"
 ]
 
 @bot.event
-async def on_ready(bot):
+async def on_ready():
   logger.info(f"Database {settings.database} launched")
   await bot.change_presence(activity=nextcord.Game(name="Attend un Raid !"))
   logger.info("Bot is connected to Discord !")
@@ -53,4 +54,4 @@ if __name__ == '__main__':
     bot.load_extension(extension)
   
   
-bot.run(settings.token, reconnect=True, bot=bot)
+bot.run(settings.token, reconnect=True)

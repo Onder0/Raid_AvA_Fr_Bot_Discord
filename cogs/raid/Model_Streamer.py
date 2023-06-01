@@ -1,7 +1,7 @@
 from peewee import *
 from database.database import database
 
-class Model_Streamer(Model):
+class Streamer(Model):
   id_membre = TextField(primary_key=True)
   nom_membre = TextField(default="")
 

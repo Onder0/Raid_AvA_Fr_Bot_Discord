@@ -113,7 +113,7 @@ async def embed_liste_raid(self) :
           embed.add_field(name="Il n'y a pas de raids actuellement", value="\n", inline=False)
 
       # Ajouter le dernier champ avec des informations supplémentaires
-      embed.add_field(name="", value=f"Les infos sont actualisées toutes les 5 minutes.")
+      embed.add_field(name="", value=f"Les infos sont actualisées toutes les {settings.time_update_raids} minutes.")
       
       return embed
   else:

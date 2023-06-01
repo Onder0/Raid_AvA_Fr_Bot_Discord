@@ -36,12 +36,12 @@ async def verification(interaction, personne: nextcord.Member, verif_role):
   try:
     if verif_role == "membre":
       await personne.add_roles(membre)
-      await interaction.followup.send(embed=embed_success("",f"{personne.mention} est maintenant {membre}"))
+      await interaction.followup.send(embed=embed_success("",f"{personne.mention} est maintenant {membre.mention}"))
     else :
       raider = nextcord.utils.get(interaction.guild.roles, id = settings.raider)
       await personne.remove_roles(membre)
       await personne.add_roles(raider)
-      await interaction.followup.send(embed=embed_success("",f"{personne.mention} est maintenant {raider}"))
+      await interaction.followup.send(embed=embed_success("",f"{personne.mention} est maintenant {raider.mention}"))
     logger.info("Succès\n")
     await ghostPing(interaction.channel, personne)
   except Exception as e:

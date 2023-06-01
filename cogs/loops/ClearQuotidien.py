@@ -2,7 +2,7 @@ from utils import *
 from config import *
 import nextcord
 from nextcord.ext import commands, tasks
-from cogs.raid.Model_Streamer import Model_Streamer
+from cogs.raid.Model_Streamer import Streamer
 
 class ClearQuotidien(commands.Cog):
   def __init__(self, bot):
@@ -16,27 +16,43 @@ class ClearQuotidien(commands.Cog):
 
   @nextcord.slash_command(name="clear", description="Force le clear quotidien")
   async def clear_quotidien(self, interaction : nextcord.Interaction):
-     await clear_quotidien(self)
-     await interaction.channel.send(embed=embed_success("","Le clear quotidien à bien été effectué"))
+    await interaction.response.defer()
+    logger.info(f"{interaction.user.display_name} effectue la commande /clear !")
+
+    if not await verif_guild(interaction) : return
+    chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
+    if not await verif_chan(interaction, chan_commandes) : return
+
+    admin_id = settings.admin
+    modo_id = settings.modo
+    roles_requis = [admin_id, modo_id]
+    user_roles = [role.id for role in interaction.user.roles]
+    # Vérifie que la personne peut faire le payement
+    a_role_requis = any(role_id in user_roles for role_id in roles_requis)
+    if not a_role_requis:
+      admin = interaction.guild.get_role(admin_id)
+      modo = interaction.guild.get_role(modo_id)
+      error_msg = await interaction.followup.send(embed=embed_error("",
+								f"Vous devez être {admin.mention} ou {modo.mention} pour effectué la commande !"))
+      logger.warning(f"Échec: La commande a été exécutée dans {interaction.channel} !\n")
+      await asyncio.sleep(10)
+      await error_msg.delete()
+    else :
+      await clear_quotidien(self)
+      await chan_commandes.send(embed=embed_warning("", f"Le clean a bien été effectué par {interaction.user.mention}"))
   
 
   @tasks.loop(hours=24)
   async def clear_loop(self):
+    
+    now = datetime.datetime.now(pytz.utc)
 
     clear_time = datetime.time(hour=4, minute=0)
-    next_clear = datetime.datetime.combine(datetime.now.date(), clear_time)
-    if next_clear < datetime.now:
+    next_clear = datetime.datetime.combine(now.date(), clear_time)
+    if next_clear < now:
         next_clear += datetime.timedelta(days=1)
 
-    wait_time = (next_clear - datetime.now).total_seconds()
-
-    # wait_hours = wait_time // 3600
-    # wait_minutes = int((wait_time % 3600) // 60)
-    # if wait_minutes < 10:
-    #     wait_minutes_str = f"0{wait_minutes}"
-    # else:
-    #     wait_minutes_str = str(wait_minutes)
-    # logger.info(f"Prochain clean du chan commandes dans {wait_hours:.0f}h{wait_minutes_str}.\n")
+    wait_time = (next_clear - now).total_seconds()
 
     await asyncio.sleep(wait_time)
     await clear_quotidien(self)
@@ -105,7 +121,8 @@ async def clear_quotidien(self):
   logger.info(f"Suppression des messages dans {chan_sanction} du serveur {self.bot.guilds[0].name}.")
   async for message in chan_sanction.history(limit=None):
     # Vérifier si le message contient la chaîne de texte recherchée
-    if "a réglé ses dettes" in message.content:
+    for embed in message.embeds:
+      if embed.description and "a réglé ses dettes" in embed.description:
         await message.delete()
   logger.info(f"Succès : Messages de règlement de dettes supprimés dans {chan_sanction}")
 
@@ -119,7 +136,7 @@ async def clear_quotidien(self):
   logger.info(f"Suppression des rôles dans {streamer} du serveur {self.bot.guilds[0].name}.")
   
   logger.info(f"+ Retrait de tous les {streamer}.")
-  users = Model_Streamer.select()
+  users = Streamer.select()
 
   for user in users:
       user_id = int(user.id_membre)
@@ -131,8 +148,8 @@ async def clear_quotidien(self):
   logger.info(f"+ Tous les rôles {streamer} ont été retirés aux membre l'ayant.")
 
   try :
-      Model_Streamer.drop_table()
-      Model_Streamer.create_table()
+      Streamer.drop_table()
+      Streamer.create_table()
       logger.info(f"La table Streamer a été supprimée et recréée.")
   except Exception as e :
       logger.warning(f"La DB n'est pas valide ou la table n'existe pas : {e}")

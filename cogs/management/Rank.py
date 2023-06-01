@@ -3,7 +3,7 @@ from config import *
 import nextcord
 from nextcord import SlashOption, slash_command, Interaction
 from nextcord.ext import commands
-from cogs.management.Model_Rankup import Model_Rankup
+from cogs.management.Model_Rankup import Rankup
 
 ROLES = [
   {"name": "Off-Tank", "value": "off_tank"},
@@ -24,7 +24,7 @@ ROLES = [
 class Rank(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    Model_Rankup.create_table()
+    Rankup.create_table()
 
   @commands.Cog.listener()
   async def on_ready(self):
@@ -40,8 +40,8 @@ class Rank(commands.Cog):
     logger.info(f"{interaction.user.id}: {interaction.user.display_name} execute la commande /rankup {role} {personne.display_name} .")
     
     if not await verif_guild(interaction) : return
-    chan_rankup =  interaction.guild.get_channel(settings.chan_rankup)
-    if not await verif_chan(interaction, chan_rankup) : return
+    chan_commandes =  interaction.guild.get_channel(settings.chan_commandes)
+    if not await verif_chan(interaction, chan_commandes) : return
     
     role_rankup = None
     for choice in ROLES:
@@ -49,20 +49,23 @@ class Rank(commands.Cog):
         role_rankup = choice["value"]
         break
     role_normal = nextcord.utils.get(interaction.guild.roles, id = getattr(settings, role_rankup))
+    role_rankup_op = f"{role_rankup}_op"
+    role_op = nextcord.utils.get(interaction.guild.roles, id = getattr(settings, role_rankup_op))
 
-    result_rankup, created = Model_Rankup.get_or_create(id_membre = personne.id)
+    result_rankup, created = Rankup.get_or_create(id_membre = personne.id)
     setattr(result_rankup, 'nom_membre', personne.display_name)
     
     plus_un = getattr(result_rankup, role_rankup)
 
     message = ""
     embed = ""
+    message_commande = ""
+    embed_commande = ""
 
     if plus_un == 5 :
-        role_rankup_op = f"{role_rankup}_op"
-        role_op = nextcord.utils.get(interaction.guild.roles, id = getattr(settings, role_rankup_op))
-        message += f"{personne.mention} est déjà {role_op.mention} !\n"
+        message += f":star2: {personne.mention} est déjà {role_op.mention} ! :star2:\n"
         embed = embed_warning("",message)
+        embed_commande = embed_success("",message)
         logger.info(f"+ {personne.display_name} était déjà {role_op}")
     else :
         plus_un += 1
@@ -71,17 +74,23 @@ class Rank(commands.Cog):
             await personne.remove_roles(role_normal)
             await personne.add_roles(role_op)
             message += f"{personne.mention} à atteint le +5, il est maintenant {role_op.mention} !"
+            message_commande += f"{role_op.mention} atteint pour {personne.mention}"
             embed = embed_success("", message)
+            embed_commande = embed_success("",message_commande)
             logger.info(f"+ {personne.display_name} est maintenant {role_op}")
         else:
             await personne.add_roles(role_normal)
-            message += f"{personne.mention} est maintenant {role_normal.mention} +{plus_un} !"
+            message += f":star2: {personne.mention} est maintenant {role_normal.mention} +{plus_un} ! :star2:"
+            message_commande += f"{role_normal.mention} +{plus_un} pour {personne.mention}"
             embed = embed_success("", message)
+            embed_commande = embed_success("",message_commande)
             logger.info(f"+ {personne.display_name} est {role_normal} +{plus_un} .")
     
     result_rankup.save()
-    await interaction.followup.send(embed=embed)
-    if plus_un == 5 : await chan_rankup.send(":star2:")
+
+    await interaction.followup.send(embed=embed_commande)
+    chan_rankup =  interaction.guild.get_channel(settings.chan_rankup)
+    await chan_rankup.send(embed=embed)
     await ghostPing(chan_rankup, personne)
     logger.info(f"Succès !\n")
 
@@ -96,8 +105,8 @@ class Rank(commands.Cog):
     logger.info(f"{interaction.user.id}: {interaction.user.display_name} execute la commande /rankup {role} {personne.display_name} .")
     
     if not await verif_guild(interaction) : return
-    chan_rankup = interaction.guild.get_channel(settings.chan_rankup)
-    if not await verif_chan(interaction, chan_rankup) : return
+    chan_commandes =  interaction.guild.get_channel(settings.chan_commandes)
+    if not await verif_chan(interaction, chan_commandes) : return
     
     role_rankup = None
     for choice in ROLES:
@@ -106,7 +115,7 @@ class Rank(commands.Cog):
         break
     role_normal = nextcord.utils.get(interaction.guild.roles, id = getattr(settings, role_rankup))
 
-    result_rankup, created = Model_Rankup.get_or_create(id_membre = personne.id)
+    result_rankup, created = Rankup.get_or_create(id_membre = personne.id)
     setattr(result_rankup, 'nom_membre', personne.display_name)
     
     plus_un = getattr(result_rankup, role_rankup)
@@ -118,13 +127,12 @@ class Rank(commands.Cog):
     result_rankup.save()
 
     message = ""
-    embed = ""
 
     if plus_un == 4 :
         role_rankup_op = f"{role_rankup}_op"
         role_op = nextcord.utils.get(interaction.guild.roles, id = getattr(settings, role_rankup_op))
         await personne.remove_roles(role_op)
-        message += f"{personne.mention} n'est plus {role_op.mention} ! Il est revenu à {role_normal.mention} +{plus_un} !"
+        message += f"{personne.mention} n'est plus {role_op.mention} !\nIl est revenu à {role_normal.mention} +{plus_un} !"
         logger.info(f"+ {personne.display_name} n'est plus {role_op}. => {role_normal} +{plus_un}.")
     elif plus_un == 0 :
         message += f"{personne.mention} n'est plus rank en {role_normal.mention} !"
@@ -132,8 +140,10 @@ class Rank(commands.Cog):
     else:
         message += f"{personne.mention} est revenu à {role_normal.mention} +{plus_un} !"
         logger.info(f"+ {personne.display_name} est {role_normal} +{plus_un}.")
-    
     message += f"\n`=> {raison}`"
+    
+    chan_rankup = interaction.guild.get_channel(settings.chan_rankup)
+    await chan_rankup.send(embed=embed_error("",message))
     await interaction.followup.send(embed=embed_warning("", message))
     await ghostPing(chan_rankup, personne)
     logger.info(f"Succès !\n")

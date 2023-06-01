@@ -23,7 +23,7 @@ class Bonus(commands.Cog):
         logger.info(f"{interaction.user.id}: {interaction.user.display_name} execute la commande /bonus {personne.display_name} .")
 
     if not await verif_guild(interaction) : return
-    chan_commandes =  interaction.guild.get_channel(settings.chan_commandes)
+    chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
     if not await verif_chan(interaction, chan_commandes) : return
     
     # Récupère le rôle MOR
@@ -39,10 +39,10 @@ class Bonus(commands.Cog):
     if personne:
       await personne.add_roles(role)
       await chan_bonus.send(embed=embed_success("",f"{interaction.user.mention} a donné le rôle {role.mention} à {personne.mention}"))
-      await ghostPing(chan_bonus, personne)
       message += f"Le rôle bonus à bien été attribué à {personne.mention} !"
       logger.info(f"+ Bonus donné à {personne.display_name} .")
       embed = embed_success("",message)
+      await ghostPing(chan_bonus, personne)
       await interaction.followup.send(embed=embed_success("",f"Le {role.mention} a bien été attribué."))
     else :        
       # Donne le rôle Bonus (MOR) aux personnes dans le channel vocal sélectionné et les ping dans le channel texte MOR

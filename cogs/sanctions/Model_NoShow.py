@@ -2,7 +2,7 @@ from peewee import *
 from database.database import database
 
 
-class Model_NoShow(Model):
+class NoShow(Model):
     id_membre = TextField(primary_key=True)
     nom_membre = TextField(default="")
     no_show_count = SmallIntegerField(default=0)
