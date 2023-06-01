@@ -24,16 +24,14 @@ class ClearQuotidien(commands.Cog):
     if not await verif_chan(interaction, chan_commandes) : return
 
     admin_id = settings.admin
-    modo_id = settings.modo
-    roles_requis = [admin_id, modo_id]
+    roles_requis = [admin_id]
     user_roles = [role.id for role in interaction.user.roles]
     # Vérifie que la personne peut faire le payement
     a_role_requis = any(role_id in user_roles for role_id in roles_requis)
     if not a_role_requis:
       admin = interaction.guild.get_role(admin_id)
-      modo = interaction.guild.get_role(modo_id)
       error_msg = await interaction.followup.send(embed=embed_error("",
-								f"Vous devez être {admin.mention} ou {modo.mention} pour effectué la commande !"))
+								f"Vous devez être {admin.mention} pour effectué la commande !"))
       logger.warning(f"Échec: La commande a été exécutée dans {interaction.channel} !\n")
       await asyncio.sleep(10)
       await error_msg.delete()
