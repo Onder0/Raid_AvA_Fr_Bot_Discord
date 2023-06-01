@@ -11,7 +11,7 @@ logger.info("===================================================================
 logger.warning(f"Environment: {settings.ENV_FOR_DYNACONF}")
 
 if settings.ENV_FOR_DYNACONF == "development":  
-  shutil.copy("./database/backup.db", "./database/development.db")
+  shutil.copy("./database/backup_dev.db", "./database/development.db")
 if settings.ENV_FOR_DYNACONF == "production":  
   shutil.copy("./database/production.db", "./database/backup_prod.db")
 
