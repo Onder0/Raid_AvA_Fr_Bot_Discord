@@ -2,58 +2,47 @@ from utils import *
 from config import *
 import nextcord
 from nextcord.ext import commands, tasks
+import shutil
+import datetime
+import pytz
 from cogs.raid.Model_Streamer import Streamer
 
 class ClearQuotidien(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
     self.clear_loop.start()
-    
 
   @commands.Cog.listener()
   async def on_ready(self):
     logger.info("ClearQuotidien.py is ready!")
 
-  @nextcord.slash_command(name="clear", description="Force le clear quotidien")
-  async def clear_quotidien(self, interaction : nextcord.Interaction):
-    await interaction.response.defer()
-    logger.info(f"{interaction.user.display_name} effectue la commande /clear !")
-
-    if not await verif_guild(interaction) : return
-    chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
-    if not await verif_chan(interaction, chan_commandes) : return
-
-    admin_id = settings.admin
-    roles_requis = [admin_id]
-    user_roles = [role.id for role in interaction.user.roles]
-    # Vérifie que la personne peut faire le payement
-    a_role_requis = any(role_id in user_roles for role_id in roles_requis)
-    if not a_role_requis:
-      admin = interaction.guild.get_role(admin_id)
-      error_msg = await interaction.followup.send(embed=embed_error("",
-								f"Vous devez être {admin.mention} pour effectué la commande !"))
-      logger.warning(f"Échec: La commande a été exécutée dans {interaction.channel} !\n")
-      await asyncio.sleep(10)
-      await error_msg.delete()
-    else :
-      await clear_quotidien(self)
-      await chan_commandes.send(embed=embed_warning("", f"Le clean a bien été effectué par {interaction.user.mention}"))
-  
-
-  @tasks.loop(hours=24)
+  @tasks.loop(hours=settings.time_loop_clear_quotidien)
   async def clear_loop(self):
-    
-    now = datetime.datetime.now(pytz.utc)
+    now = datetime.datetime.now(pytz.utc).astimezone(pytz.utc)
 
-    clear_time = datetime.time(hour=4, minute=0)
+    clear_time = datetime.time(hour=settings.time_execution_clear_quotidien-2)
     next_clear = datetime.datetime.combine(now.date(), clear_time)
+    next_clear = pytz.utc.localize(next_clear)
     if next_clear < now:
         next_clear += datetime.timedelta(days=1)
+
+    wait_time = (next_clear - now).total_seconds()
+    wait_hours = wait_time // 3600
+    wait_minutes = int((wait_time % 3600) // 60)
+    if wait_minutes < 10:
+        wait_minutes_str = f"0{wait_minutes}"
+    else:
+        wait_minutes_str = str(wait_minutes)
+    print(f"Prochain clear quotidien dans {wait_hours:.0f}h{wait_minutes_str}.\n")
 
     wait_time = (next_clear - now).total_seconds()
 
     await asyncio.sleep(wait_time)
     await clear_quotidien(self)
+
+  @clear_loop.before_loop
+  async def before_boucle(self):
+     await self.bot.wait_until_ready()
 
 
 async def clear_quotidien(self):
@@ -65,7 +54,17 @@ async def clear_quotidien(self):
   # Effectue un backup des logs #
   # =========================== #
   file_handler.doRollover()
-  logger.info(f"Le logs ont été backup !")
+  logger.info("=================================================================================")
+  logger.info("================================ Clear Quotidien ================================")
+  logger.info(f"=================================================================================\n")
+
+  # =========================== #
+  # Effectue un backup de la DB #
+  # =========================== #
+
+  if settings.ENV_FOR_DYNACONF == "production":  
+    shutil.copy("./database/production.db", "./database/backup_prod.db")
+    logger.info(f"Succès: production.db a été backup vers backup_prod.db !\n")
 
   # ====================================================== #
   # Supprime tous les messages dans le channel 'commandes' #
@@ -80,7 +79,7 @@ async def clear_quotidien(self):
   for message in messages:
       if not message.pinned:
           await message.delete()
-  logger.info(f"Succès: Commandes supprimées dans {chan_commandes}.")
+  logger.info(f"Succès: Commandes supprimées dans {chan_commandes}.\n")
   await chan_commandes.send(embed=embed_success("",f"Tous les messages du channel ont été supprimés."))
 
   # ====================================================================================== #
@@ -100,7 +99,7 @@ async def clear_quotidien(self):
   for message in messages:
     if not message.pinned:
         await message.delete()
-  logger.info(f"Succès: Commandes supprimées dans {chan_raid}.")
+  logger.info(f"Succès: Commandes supprimées dans {chan_raid}.\n")
   
   # ===================================================================== #
   # Supprime les messages disant que les personnes ont réglé leurs dettes #
@@ -114,7 +113,7 @@ async def clear_quotidien(self):
     for embed in message.embeds:
       if embed.description and "a réglé ses dettes" in embed.description:
         await message.delete()
-  logger.info(f"Succès : Messages de règlement de dettes supprimés dans {chan_deserteur}")
+  logger.info(f"Succès: Messages de règlement de dettes supprimés dans {chan_deserteur}\n")
 
   logger.info(f"Suppression des messages dans {chan_sanction} du serveur {self.bot.guilds[0].name}.")
   async for message in chan_sanction.history(limit=None):
@@ -122,7 +121,7 @@ async def clear_quotidien(self):
     for embed in message.embeds:
       if embed.description and "a réglé ses dettes" in embed.description:
         await message.delete()
-  logger.info(f"Succès : Messages de règlement de dettes supprimés dans {chan_sanction}")
+  logger.info(f"Succès: Messages de règlement de dettes supprimés dans {chan_sanction}\n")
 
   # ============================================ #
   # Retrait du rôle de streamer à ceux qui l'ont #
@@ -148,9 +147,17 @@ async def clear_quotidien(self):
   try :
       Streamer.drop_table()
       Streamer.create_table()
-      logger.info(f"La table Streamer a été supprimée et recréée.")
+      logger.info(f"+ La table Streamer a été supprimée et recréée.")
   except Exception as e :
-      logger.warning(f"La DB n'est pas valide ou la table n'existe pas : {e}")
+      logger.error(f"- La DB n'est pas valide ou la table n'existe pas : {e}")
+
+  logger.info(f"Succès : Les {streamer} ont été supprimés !\n")
+
+
+  
+  logger.info("=================================================================================")
+  logger.info("================================ Reprise du bot =================================")
+  logger.info(f"=================================================================================\n")
 
 
 

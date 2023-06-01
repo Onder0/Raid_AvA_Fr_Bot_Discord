@@ -13,7 +13,7 @@ class UpdateRaids(commands.Cog):
   async def on_ready(self):
     logger.info("UpdateRaids.py is ready!")
 
-  @tasks.loop(minutes=settings.time_update_raids)
+  @tasks.loop(minutes=settings.time_loop_update_raids)
   async def liste_raids(self):
       print(f"Update liste raid en cours !")
       try :
@@ -114,7 +114,7 @@ async def embed_liste_raid(self) :
           embed.add_field(name="Il n'y a pas de raids actuellement", value="\n", inline=False)
 
       # Ajouter le dernier champ avec des informations supplémentaires
-      embed.add_field(name="", value=f"Les infos sont actualisées toutes les {settings.time_update_raids} minutes.")
+      embed.add_field(name="", value=f"Les infos sont actualisées toutes les {settings.time_loop_update_raids} minutes.")
       
       return embed
   else:
