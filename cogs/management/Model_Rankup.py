@@ -1,6 +1,7 @@
 from peewee import *
 from database.database import database
 
+
 class Rankup(Model):
     id_membre = TextField(primary_key=True)
     nom_membre = TextField(default="")
@@ -18,6 +19,6 @@ class Rankup(Model):
     fire = SmallIntegerField(default=0)
     arbalete = SmallIntegerField(default=0)
     scout = SmallIntegerField(default=0)
-    
+
     class Meta:
         database = database

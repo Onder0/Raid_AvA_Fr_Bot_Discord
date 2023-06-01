@@ -13,4 +13,3 @@ class NoShow(Model):
 
     class Meta:
         database = database
-
