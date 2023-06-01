@@ -15,7 +15,7 @@ class UpdateRaids(commands.Cog):
 
   @tasks.loop(minutes=settings.time_loop_update_raids)
   async def liste_raids(self):
-      print(f"Update liste raid en cours !")
+      print(f"Update liste raid en cours !\n")
       try :
           await verif_liste_raid(self)
       except Exception as e :
