@@ -2,17 +2,18 @@ from utils import *
 from config import *
 import nextcord
 from nextcord.ext import commands
+import shutil
 
 
+logger.info("=================================================================================")
+logger.info("================================ Starting bot... ================================")
+logger.info("=================================================================================")
+logger.warning(f"Environment: {settings.ENV_FOR_DYNACONF}")
 
-logger.info("=====================================")
-logger.info("========== Starting bot... ==========")
-logger.info("=====================================")
-logger.info(f"Environment: {settings.ENV_FOR_DYNACONF}")
-
-if settings.ENV_FOR_DYNACONF == "DEVELOPMENT":  
-  import shutil
+if settings.ENV_FOR_DYNACONF == "development":  
   shutil.copy("./database/backup.db", "./database/development.db")
+if settings.ENV_FOR_DYNACONF == "production":  
+  shutil.copy("./database/production.db", "./database/backup_prod.db")
 
 bot = commands.Bot(
   command_prefix=settings.command_prefix,

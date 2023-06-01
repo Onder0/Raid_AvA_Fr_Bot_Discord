@@ -18,7 +18,7 @@ class UpdateRaids(commands.Cog):
       try :
           await verif_liste_raid(self)
       except Exception as e :
-          print(f"Échec Update liste raid : {e}\n")
+          logger.error(f"Échec: {e}\n")
 
   @liste_raids.before_loop
   async def before_boucle(self):
@@ -117,7 +117,7 @@ async def embed_liste_raid(self) :
       
       return embed
   else:
-      logger.info(f"Échec de la requête à l'API Raid Helper => Status : {response.status_code}\n")
+      logger.warning(f"Échec de la requête à l'API Raid Helper => Status : {response.status_code}\n")
 
 
 def setup(bot):
