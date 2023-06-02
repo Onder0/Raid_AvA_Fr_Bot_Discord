@@ -15,6 +15,27 @@ class Misc(commands.Cog):
     async def on_ready(self):
         logger.info("Misc.py is ready!")
 
+    # ========================================== #
+    # ========== Fonction temporaires ========== #
+    # ========================================== #
+
+    @slash_command(name="temp")
+    async def temp(self, interaction: Interaction):
+        await interaction.response.defer()
+
+        if not interaction.user.id in settings.temp_user:
+            msg = await interaction.followup.send(
+                embed=embed_error("", f"Vous ne pouvez pas utiliser cette commande !")
+            )
+            await asyncio.sleep(10)
+            msg.delete()
+
+            #
+
+        return
+
+    # ========================================== #
+
     @slash_command(name="ping", description="Renvoie la latence du bot.")
     async def ping(self, interaction: Interaction):
         await interaction.response.defer()
