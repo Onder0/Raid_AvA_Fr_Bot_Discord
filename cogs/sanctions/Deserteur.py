@@ -53,11 +53,10 @@ class Deserteur(commands.Cog):
                     "", f"Vous essayez de /deserteur sur une personne déjà {deserteur3.mention} !"
                 )
             )
-            logger.warning(
-                f"Échec: La commande a été exécutée sur une personne déjà deserteur 3 !\n"
-            )
+            logger.warning(f"- La commande a été exécutée sur une personne déjà deserteur 3 !\n")
             await asyncio.sleep(10)
             await error_msg.delete()
+            logger.info(f"Échec:\n")
             return
         count += 1
         setattr(result_deserteur, "no_show_count", count)

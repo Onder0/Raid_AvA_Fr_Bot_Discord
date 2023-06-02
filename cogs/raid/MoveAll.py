@@ -58,10 +58,11 @@ class MoveAll(commands.Cog):
                 embed=embed_error("", "Vous devez sélectionné un channel différent du votre !")
             )
             logger.warning(
-                f"Échec: {interaction.user.display_name} a essayé de moveall vers le vocal où il se trouve.\n"
+                f"- {interaction.user.display_name} a essayé de moveall vers le vocal où il se trouve.\n"
             )
             await asyncio.sleep(10)
             await error_msg.delete()
+            logger.info(f"Échec\n")
             return
 
         # Récupère le rôle MOR

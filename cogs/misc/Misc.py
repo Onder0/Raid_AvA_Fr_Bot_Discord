@@ -18,7 +18,7 @@ class Misc(commands.Cog):
     @slash_command(name="ping", description="Renvoie la latence du bot.")
     async def ping(self, interaction: Interaction):
         await interaction.response.defer()
-        logger.info(f"{interaction.user.display_name} execute /ping !")
+        logger.info(f"{interaction.user.id}: {interaction.user.display_name} execute /ping !")
 
         if not await verif_guild(interaction):
             return
@@ -40,7 +40,9 @@ class Misc(commands.Cog):
     @slash_command(name="clear", description="Force le clear quotidien")
     async def clear_quotidien(self, interaction: Interaction):
         await interaction.response.defer()
-        logger.info(f"{interaction.user.display_name} effectue la commande /clear !")
+        logger.info(
+            f"{interaction.user.id}: {interaction.user.display_name} effectue la commande /clear !"
+        )
 
         if not await verif_guild(interaction):
             return
@@ -60,9 +62,10 @@ class Misc(commands.Cog):
                     "", f"Vous devez être {admin.mention} pour effectué la commande !"
                 )
             )
-            logger.warning(f"Échec: La commande a été exécutée dans {interaction.channel} !\n")
+            logger.warning(f"- La commande a été exécutée dans {interaction.channel} !\n")
             await asyncio.sleep(10)
             await error_msg.delete()
+            logger.info(f"Échec\n")
         else:
             await clear_quotidien(self)
             await chan_commandes.send(

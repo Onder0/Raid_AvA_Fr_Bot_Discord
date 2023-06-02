@@ -44,10 +44,11 @@ async def payement(bot, payload):
                     )
                 )
                 logger.warning(
-                    f"Échec: Le message sur lequel {user.display_name} a réagi n'est pas une sanction !.\n"
+                    f"- Le message sur lequel {user.display_name} a réagi n'est pas une sanction !.\n"
                 )
                 await asyncio.sleep(10)
                 await error_msg.delete()
+                logger.info(f"Échec:\n")
                 return
 
     logger.info(
@@ -102,14 +103,16 @@ async def payement(bot, payload):
                 logger.info("Succès !\n")
 
         elif reaction.emoji == "👎":
-            logger.info(f"Échec : {user.display_name} a abandonné !\n")
+            logger.info(f"- {user.display_name} a abandonné !\n")
             # Supprimer la réaction de la personne sur le message initial
             await message.remove_reaction(payload.emoji, user)
+            logger.info(f"Échec:\n")
 
     except asyncio.TimeoutError:
-        logger.info(f"Échec : {user.display_name} n'a pas réagit !\n")
+        logger.info(f"- {user.display_name} n'a pas réagit !\n")
         # Supprimer la réaction de la personne sur le message initial
         await message.remove_reaction(payload.emoji, user)
+        logger.info(f"Échec:\n")
 
     # Supprimer le message de confirmation
     await confirmation_message.delete()

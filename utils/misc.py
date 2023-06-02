@@ -37,23 +37,50 @@ async def verif_chan(interaction, channel):
             )
         )
         logger.warning(
-            f"Échec: La commande a été exécutée dans {interaction.channel} au lieu de {channel} !\n"
+            f"- La commande a été exécutée dans {interaction.channel} au lieu de {channel} !\n"
         )
         await asyncio.sleep(10)
         await error_msg.delete()
+        logger.info(f"Échec:\n")
         return False
     return True
 
 
-async def verif_category(interaction, category_id):
-    if interaction.channel.category != category_id:
+async def verif_thread(interaction, thread):
+    if interaction.channel != thread:
         from utils.embedder import embed_error
 
         error_msg = await interaction.followup.send(
-            embed=embed_error("", f"Vous ne pouvez pas effectué la commande ici !")
+            embed=embed_error(
+                "", f"Vous devez effectuer cette commande dans le thread {thread.mention} !"
+            )
         )
-        logger.warning(f"Échec: La commande a été exécutée dans {interaction.channel} !\n")
+        logger.warning(
+            f"- La commande a été exécutée dans {interaction.channel} au lieu de {thread} !\n"
+        )
         await asyncio.sleep(10)
         await error_msg.delete()
+        logger.info(f"Échec:\n")
+        return False
+    return True
+
+
+async def verif_categorie(interaction, categorie):
+    # Vérifier si l'interaction se déroule dans un channel de la catégorie spécifiée
+    if interaction.channel.category_id != categorie.id:
+        from utils.embedder import embed_error
+
+        error_msg = await interaction.followup.send(
+            embed=embed_error(
+                "",
+                f"Vous devez effectuer cette commande dans un channel de la catégorie {categorie.mention} !",
+            )
+        )
+        logger.warning(
+            f"- La commande a été exécutée dans {interaction.channel} au lieu d'un channel de la catégorie {categorie} !\n"
+        )
+        await asyncio.sleep(10)
+        await error_msg.delete()
+        logger.info(f"Échec:\n")
         return False
     return True

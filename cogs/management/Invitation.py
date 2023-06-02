@@ -42,6 +42,9 @@ async def verification(interaction, personne: nextcord.Member, verif_role):
 
     if not await verif_guild(interaction):
         return
+    cat_regles = nextcord.utils.get(interaction.guild.categories, id=settings.cat_regles)
+    if not await verif_categorie(interaction, cat_regles):
+        return
 
     membre = nextcord.utils.get(interaction.guild.roles, id=settings.membre)
 
