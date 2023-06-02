@@ -15,8 +15,30 @@ class Misc(commands.Cog):
     async def on_ready(self):
         logger.info("Misc.py is ready!")
 
-    @nextcord.slash_command(name="clear", description="Force le clear quotidien")
-    async def clear_quotidien(self, interaction: nextcord.Interaction):
+    @slash_command(name="ping", description="Renvoie la latence du bot.")
+    async def ping(self, interaction: Interaction):
+        await interaction.response.defer()
+        logger.info(f"{interaction.user.display_name} execute /ping !")
+
+        if not await verif_guild(interaction):
+            return
+        chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
+        if not await verif_chan(interaction, chan_commandes):
+            return
+
+        latence = self.bot.latency * 1000
+
+        logger.info(f"+ Latence du bot : {latence:.2f} ms")
+        msg = await interaction.followup.send(
+            embed=embed_success("", f"La latence du bot est de `{latence:.2f}ms`")
+        )
+        await asyncio.sleep(10)
+        await msg.delete()
+
+        logger.info("Succès")
+
+    @slash_command(name="clear", description="Force le clear quotidien")
+    async def clear_quotidien(self, interaction: Interaction):
         await interaction.response.defer()
         logger.info(f"{interaction.user.display_name} effectue la commande /clear !")
 
