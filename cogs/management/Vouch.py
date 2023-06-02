@@ -62,9 +62,7 @@ class Vouch(commands.Cog):
             )
             logger.info("Échecs\n")
         else:
-            setattr(result, "nom_membre", personne.display_name)
             setattr(result, "id_voucher", voucher.id)
-            setattr(result, "nom_voucher", voucher.display_name)
 
             result.save()
             logger.info(f"+ Le vouch a bien été ajouté en DB.")
@@ -127,9 +125,7 @@ class Vouch(commands.Cog):
             logger.info(f"Échec\n")
             return
 
-        setattr(result, "nom_membre", personne.display_name)
         setattr(result, "id_voucher", voucher.id)
-        setattr(result, "nom_voucher", voucher.display_name)
         setattr(result, "date", datetime.datetime.now(tz=pytz.timezone("Europe/Paris")))
 
         result.save()
