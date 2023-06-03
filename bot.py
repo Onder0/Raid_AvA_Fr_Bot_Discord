@@ -30,6 +30,7 @@ initial_extensions = [
     "cogs.management.Rank",
     "cogs.management.Vouch",
     "cogs.misc.Misc",
+    "cogs.misc.Temp",
     "cogs.raid.Bonus",
     "cogs.raid.MoveAll",
     "cogs.raid.Stream",

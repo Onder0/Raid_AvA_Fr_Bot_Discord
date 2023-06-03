@@ -89,6 +89,24 @@ async def clear_quotidien(self):
         embed=embed_success("", f"Tous les messages du channel ont été supprimés.")
     )
 
+    # ====================================================== #
+    # Supprime tous les messages dans le channel 'commandes' #
+    # ====================================================== #
+    chan_temp = self.bot.get_channel(settings.chan_temp)
+    logger.info(f"Suppression des messages dans {chan_temp} du serveur {self.bot.guilds[0].name}.")
+
+    messages = []
+    async for message in chan_temp.history(limit=None):
+        messages.append(message)
+
+    for message in messages:
+        if not message.pinned:
+            await message.delete()
+    logger.info(f"Succès: Commandes supprimées dans {chan_temp}.\n")
+    await chan_temp.send(
+        embed=embed_success("", f"Tous les messages du channel ont été supprimés.")
+    )
+
     # ====================================================================================== #
     # Supprime tous les messages dans le channel 'annonce raid' envoyés par les utilisateurs #
     # ====================================================================================== #
