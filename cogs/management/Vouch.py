@@ -159,13 +159,14 @@ class Vouch(commands.Cog):
         try:
             result = Invits.get(id_membre=personne.id)
         except Exception as e:
-            logger.warning(
-                f"- {personne.display_name} n'a pas de vouch ou a été vouch avant le {settings.premier_vouch} !"
-            )
+            logger.warning(f"- {personne.display_name} n'a pas de vouch en DB !")
             await interaction.followup.send(
                 embed=embed_warning(
                     "",
-                    f"{personne.mention} n'est pas vouch ou alors a été vouch avant le `{settings.premier_vouch}`",
+                    f"{personne.mention} n'est pas vouch ! Cause possible \n"
+                    f"- Il n'a pas encore été vouch.\n"
+                    f"- Il a rejoint le serv avant le `10-04-2023`.\n"
+                    f"- Il a été vouch avant le `03-06-2023` par quelqu'un ayant quitté le discord.",
                 )
             )
             logger.info(f"Échec\n")
