@@ -39,7 +39,8 @@ async def verif_chan(interaction, channel):
 
 
 async def verif_thread(interaction, thread):
-    if interaction.channel != thread:
+    chan_temp = interaction.guild.get_channel(settings.chan_temp)
+    if interaction.channel != thread and interaction.channel != chan_temp:
         from utils.embedder import embed_error
 
         error_msg = await interaction.followup.send(
@@ -58,8 +59,8 @@ async def verif_thread(interaction, thread):
 
 
 async def verif_categorie(interaction, categorie):
-    # Vérifier si l'interaction se déroule dans un channel de la catégorie spécifiée
-    if interaction.channel.category_id != categorie.id:
+    chan_temp = interaction.guild.get_channel(settings.chan_temp)
+    if interaction.channel.category_id != categorie.id and interaction.channel != chan_temp:
         from utils.embedder import embed_error
 
         error_msg = await interaction.followup.send(
