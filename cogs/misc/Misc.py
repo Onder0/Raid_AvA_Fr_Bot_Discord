@@ -73,6 +73,12 @@ class Misc(commands.Cog):
                     "", f"Le clean a bien été effectué par {interaction.user.mention}"
                 )
             )
+            chan_temp = interaction.guild.get_channel(settings.chan_temp)
+            await chan_temp.send(
+                embed=embed_warning(
+                    "", f"Le clean a bien été effectué par {interaction.user.mention}"
+                )
+            )
             logger.info(f"Succès: Le /clear a été effectué par {interaction.user.display_name}\n")
 
 
