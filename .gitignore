@@ -2,12 +2,15 @@
 # ============== Personal Ignores ============== #
 # ============================================== #
 
-config
-database
-logs
 .vscode
 .vscode/launch
 .vscode/settings
+
+cogs/misc/Temp.py
+
+config
+database
+logs
 
 # ============================================== #
 # ============== Template Ignores ============== #
