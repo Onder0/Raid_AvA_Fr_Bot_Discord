@@ -140,8 +140,8 @@ class Vouch(commands.Cog):
 
         logger.info(f"Succès\n")
 
-    @slash_command(name="voucher", description="Afficher par qui la personne a été vouch et quand")
-    async def voucher(
+    @slash_command(name="voucheur", description="Afficher par qui la personne a été vouch et quand")
+    async def voucheur(
         self,
         interaction: Interaction,
         personne: nextcord.Member = SlashOption(
