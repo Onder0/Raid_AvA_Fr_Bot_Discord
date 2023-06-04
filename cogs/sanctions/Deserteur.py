@@ -113,7 +113,7 @@ class Deserteur(commands.Cog):
 
         result_deserteur.save()
         await interaction.followup.send(embed=embed_error("", message))
-        await ghostPing(chan_deserteur, personne)
+        await hidedPing(chan_deserteur, personne)
 
         Sanctions.create(
             id_membre=personne.id,
