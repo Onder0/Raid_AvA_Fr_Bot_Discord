@@ -6,7 +6,7 @@ import pytz
 
 class Invits(Model):
     id_membre = TextField(default="")
-    id_voucher = TextField(default="")
+    id_voucheur = TextField(default="")
     date = DateField(default=datetime.datetime.now(tz=pytz.timezone("Europe/Paris")))
 
     class Meta:
