@@ -7,7 +7,7 @@ async def verif_guild(interaction):
     if interaction.guild.id not in settings.guild_id:
         from utils.embedder import embed_error
 
-        error_msg = interaction.followup.send(
+        error_msg = await interaction.followup.send(
             embed=embed_error("", "Votre serveur n'est pas autorisé à utiliser ce bot !")
         )
         logger.warning(f"Échec: Le serveur n'était pas autorisé=> id = {interaction.guild_id}.")
