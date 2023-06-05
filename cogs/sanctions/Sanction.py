@@ -51,7 +51,7 @@ class Sanction(commands.Cog):
                 f"Tu dois payer `{montant} silvers` au discord => {chan_ticket.mention} !",
             )
         )
-        await hidedPing(chan_sanction, personne)
+        await ghostPing(chan_sanction, personne)
         logger.info("Succès !\n")
 
 
