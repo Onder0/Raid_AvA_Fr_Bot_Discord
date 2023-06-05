@@ -33,6 +33,7 @@ initial_extensions = [
     "cogs.misc.Temp",
     "cogs.raid.Bonus",
     "cogs.raid.MoveAll",
+    "cogs.raid.Presence",
     "cogs.raid.Stream",
     "cogs.sanctions.Deserteur",
     "cogs.sanctions.Sanction",
