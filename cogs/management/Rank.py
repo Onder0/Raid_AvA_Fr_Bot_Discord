@@ -38,12 +38,12 @@ class Rank(commands.Cog):
     async def rankup(
         self,
         interaction: Interaction,
-        personne: nextcord.Member = SlashOption(description="La personne à rankup.", required=True),
         role: str = SlashOption(
             description="Le rôle pour lequel elle va être rankup.",
             required=True,
             choices=[choice["name"] for choice in ROLES],
         ),
+        personne: nextcord.Member = SlashOption(description="La personne à rankup.", required=True),
     ):
         await interaction.response.defer()
 
