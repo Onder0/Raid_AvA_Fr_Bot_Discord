@@ -96,7 +96,7 @@ class Rank(commands.Cog):
                 logger.info(f"+ {personne.display_name} est maintenant {role_op}")
             else:
                 await personne.add_roles(role_normal)
-                message += f":star2: {personne.mention} est maintenant {role_normal.mention} +{plus_un} ! :star2:"
+                message += f"{personne.mention} est maintenant {role_normal.mention} +{plus_un} !"
                 message_commande += f"{role_normal.mention} +{plus_un} pour {personne.mention}"
                 embed = embed_success("", message)
                 embed_commande = embed_success("", message_commande)
