@@ -12,7 +12,7 @@ class Replace(commands.Cog):
 	async def on_ready(self):
 		logger.info("Replace.py is ready!")
 
-    
+	@slash_command
 
 def setup(bot):
   	bot.add_cog(Replace(bot))
