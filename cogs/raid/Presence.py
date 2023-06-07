@@ -29,17 +29,19 @@ class Presence(commands.Cog):
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
-        if interaction.user.voice is None:
+        voc_attente_raid = interaction.guild.get_channel(settings.voc_attente_bonus)
+        if not voc_attente_raid.states:
             error_msg = await interaction.followup.send(
-                embed=embed_error(
-                    "", "Vous devez être connecté à un vocal pour utilisé cette commande !"
-                )
+                embed=embed_error("", f"Il n'y a personne dans {voc_attente_raid.mention} !")
             )
-            logger.warning(f"{interaction.user.display_name} n'était pas en vocal !")
-            logger.info(f"Échec\n")
+            logger.warning(f"- Il n'y a personne dans {voc_attente_raid.mention} !")
             await asyncio.sleep(10)
             await error_msg.delete()
-            return
+            logger.info(f"Échec\n")
+
+        user_id = settings.raid_helper_id
+        api_key = settings.raid_helper_token
+        chan_annonces_raids = interaction.guild.get_channel(settings.chan_annonces_raids)
 
         inscritsIds = []
         absentPresentIds = []
@@ -48,10 +50,6 @@ class Presence(commands.Cog):
         logger.info("+ Récupération des Ids !")
 
         # ===== récup joueurs inscrits ===== #
-        user_id = settings.raid_helper_id
-        api_key = settings.raid_helper_token
-        chan_annonces_raids = interaction.guild.get_channel(settings.chan_annonces_raids)
-
         messages = await chan_annonces_raids.history(limit=None).flatten()
         import re
 
@@ -109,7 +107,7 @@ class Presence(commands.Cog):
 
         # ===== récup joueurs en vocal ===== #
 
-        for member in interaction.user.voice.channel.members:
+        for member in voc_attente_raid.members:
             rawVocalIds.append(member.id)
         vocalIds = [f"<@{id}>" for id in rawVocalIds]
         logger.info("+ Ids des joueurs en voc récupérées !")
