@@ -42,8 +42,8 @@ class Bonus(commands.Cog):
         # Récupère le channel texte bonus
         chan_bonus = interaction.guild.get_channel(settings.chan_bonus)
         # Récupère le channel vocal attente-bonus
-        chan_attente = nextcord.utils.get(
-            interaction.guild.voice_channels, id=settings.chan_attente_bonus
+        voc_attente_bonus = nextcord.utils.get(
+            interaction.guild.voice_channels, id=settings.voc_attente_bonus
         )
 
         message = ""
@@ -67,20 +67,20 @@ class Bonus(commands.Cog):
         else:
             # Donne le rôle Bonus (MOR) aux personnes dans le channel vocal sélectionné et les ping dans le channel texte MOR
             # S'il y a des personnes dans le chan attente et dans le vocal ciblé, exécute, sinon envoie un message d'erreur
-            if chan_attente.members:
+            if voc_attente_bonus.members:
                 message += f"{interaction.user.mention} a donné le rôle Bonus à\n"
-                for membre in chan_attente.members:
+                for membre in voc_attente_bonus.members:
                     await membre.add_roles(role)
                     message += f"- {membre.mention}"
                     await ghostPing(chan_bonus, membre)
                 embed = embed_success("", message)
                 await chan_bonus.send(embed=embed)
-                message += f"\nqui attendai(en)t dans {chan_attente.mention} !"
+                message += f"\nqui attendai(en)t dans {voc_attente_bonus.mention} !"
                 embed = message
-                logger.info(f"+ Les rôles ont été ajoutés dans le chan {chan_attente}")
+                logger.info(f"+ Les rôles ont été ajoutés dans le chan {voc_attente_bonus}")
             else:
-                message += f"\n:warning: Personne ne se trouvais dans le chan {chan_attente.mention} ! :warning:"
-                logger.warning(f"- Il n'y avait personne dans {chan_attente}")
+                message += f"\n:warning: Personne ne se trouvais dans le chan {voc_attente_bonus.mention} ! :warning:"
+                logger.warning(f"- Il n'y avait personne dans {voc_attente_bonus}")
                 embed = embed_error("", message)
             await interaction.followup.send(
                 embed=embed_success("", f"Les {role.mention} ont bien été attribués.")
