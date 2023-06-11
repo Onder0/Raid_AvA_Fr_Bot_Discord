@@ -93,7 +93,7 @@ async def embed_liste_raid(self):
             event_title = event["title"]
 
             event_url = (
-                f"https://nextcord.com/channels/{server_id}/{event['channelId']}/{event['id']}"
+                f"https://discord.com/channels/{server_id}/{event['channelId']}/{event['id']}"
             )
 
             # Si la date de début de l'événement n'est pas déjà présente dans le dictionnaire, l'ajouter avec une liste vide comme valeur
