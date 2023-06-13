@@ -26,12 +26,13 @@ class Stream(commands.Cog):
         ),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} exécute la commande /stream {personne.display_name} ."
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_commande = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commande):
             return
@@ -51,6 +52,7 @@ class Stream(commands.Cog):
         logger.info(f"+ Ajout de {personne.display_name} dans la DB Streamer")
 
         logger.info("Succès\n")
+        await logs(interaction, f"execute la commande /stream {personne.mention}")
 
 
 def setup(bot):

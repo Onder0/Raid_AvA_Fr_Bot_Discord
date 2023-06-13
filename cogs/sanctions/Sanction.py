@@ -20,12 +20,17 @@ class Sanction(commands.Cog):
         self, interaction: Interaction, personne: nextcord.Member, sanction: str, montant: str
     ):
         await interaction.response.defer()
-        logger.info(
-            f"{interaction.user.id}: {interaction.user.display_name} execute la commande /sanction {personne.display_name} ."
-        )
-
         if not await verif_guild(interaction):
             return
+
+        logger.info(
+            f"{interaction.user.id}: {interaction.user.display_name} execute la commande /sanction {personne.display_name} {sanction} {montant}."
+        )
+
+        await logs(
+            interaction, f"execute la commande /sanction {personne.mention} {sanction} {montant}"
+        )
+
         chan_sanction = interaction.guild.get_channel(settings.chan_sanction)
         if not await verif_chan(interaction, chan_sanction):
             return

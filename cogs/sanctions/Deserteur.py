@@ -25,13 +25,13 @@ class Deserteur(commands.Cog):
         ),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
 
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /deserteur {personne.display_name} ."
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_deserteur = interaction.guild.get_channel(settings.chan_deserteur)
         if not await verif_chan(interaction, chan_deserteur):
             return
@@ -125,6 +125,7 @@ class Deserteur(commands.Cog):
         )
         logger.info(f"+ Ajout dans la DB.")
         logger.info("Succès\n")
+        await logs(interaction, f"execute la commande /deserteur {personne.mention}")
 
     @slash_command(
         name="desertions",
@@ -138,12 +139,13 @@ class Deserteur(commands.Cog):
         ),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /desertions {personne.display_name} ."
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -157,6 +159,7 @@ class Deserteur(commands.Cog):
         )
 
         logger.info("Succès !\n")
+        await logs(interaction, f"execute la commande /desertions {personne.mention}")
 
 
 async def pardon(interaction, personne):

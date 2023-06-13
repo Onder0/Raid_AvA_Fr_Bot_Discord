@@ -6,7 +6,7 @@ import asyncio
 
 async def payement(bot, payload):
     from utils.embedder import embed_success, embed_warning, embed_error
-    from utils.misc import ghostPing
+    from utils.misc import ghostPing, logs
 
     guild = await bot.fetch_guild(payload.guild_id)
     chan = await guild.fetch_channel(payload.channel_id)
@@ -104,6 +104,8 @@ async def payement(bot, payload):
                 logger.info("Succès !\n")
 
             await ghostPing(chan, sanctionne)
+
+            await logs(payload, f"a réglé une sanction de {sanctionne.mention}.")
 
         elif reaction.emoji == "👎":
             logger.info(f"- {user.display_name} a abandonné !\n")

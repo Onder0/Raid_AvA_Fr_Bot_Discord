@@ -8,16 +8,11 @@ from cogs.management.Model_Rankup import Rankup
 ROLES = [
     {"name": "Off-Tank", "value": "off_tank"},
     {"name": "Healer", "value": "healer"},
-    {"name": "Grand Arcane", "value": "grand_arcane"},
-    {"name": "Arcane", "value": "arcane"},
+    {"name": "Arcanes", "value": "arcanes"},
     {"name": "Souchefer", "value": "souchefer"},
-    {"name": "Mande Tenebre", "value": "mande_tenebre"},
-    {"name": "Epee Tranchante", "value": "epee_tranchante"},
-    {"name": "Brise Royaume", "value": "brise_royaume"},
-    {"name": "Chasse Esprit", "value": "chasse_esprit"},
-    {"name": "Frost", "value": "frost"},
-    {"name": "Fire", "value": "fire"},
-    {"name": "Arbalete", "value": "arbalete"},
+    {"name": "Support", "value": "support"},
+    {"name": "HP Cute", "value": "hp_cut"},
+    {"name": "DPS", "value": "dps"},
     {"name": "Scout", "value": "scout"},
 ]
 
@@ -46,13 +41,13 @@ class Rank(commands.Cog):
         personne: nextcord.Member = SlashOption(description="La personne à rankup.", required=True),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
 
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /rankup {role} {personne.display_name} ."
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -109,6 +104,7 @@ class Rank(commands.Cog):
         await chan_rankup.send(embed=embed)
         await ghostPing(chan_rankup, personne)
         logger.info(f"Succès !\n")
+        await logs(interaction, f"execute la commande /rankup {role} {personne.mention}")
 
     @slash_command(
         name="derank",
@@ -126,12 +122,13 @@ class Rank(commands.Cog):
         raison: str = SlashOption(description="La raison de son dérank.", required=True),
     ):
         await interaction.response.defer()
-        logger.info(
-            f"{interaction.user.id}: {interaction.user.display_name} execute la commande /rankup {role} {personne.display_name} ."
-        )
-
         if not await verif_guild(interaction):
             return
+
+        logger.info(
+            f"{interaction.user.id}: {interaction.user.display_name} execute la commande /derank {role} {personne.display_name} {raison}."
+        )
+
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -179,6 +176,7 @@ class Rank(commands.Cog):
         await interaction.followup.send(embed=embed_warning("", message))
         await ghostPing(chan_rankup, personne)
         logger.info(f"Succès !\n")
+        await logs(interaction, f"execute la commande /derank {role} {personne.mention} {raison}")
 
 
 def setup(bot):

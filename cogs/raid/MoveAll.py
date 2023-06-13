@@ -27,12 +27,13 @@ class MoveAll(commands.Cog):
         ),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /moveall {channel}."
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -99,6 +100,7 @@ class MoveAll(commands.Cog):
             )
 
         logger.info(f"Succès !\n")
+        await logs(interaction, f"execute la commande /moveall {channel}")
 
 
 def setup(bot):

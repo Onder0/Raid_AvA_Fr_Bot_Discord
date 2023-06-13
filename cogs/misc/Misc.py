@@ -18,10 +18,11 @@ class Misc(commands.Cog):
     @slash_command(name="ping", description="Renvoie la latence du bot.")
     async def ping(self, interaction: Interaction):
         await interaction.response.defer()
-        logger.info(f"{interaction.user.id}: {interaction.user.display_name} execute /ping !")
-
         if not await verif_guild(interaction):
             return
+
+        logger.info(f"{interaction.user.id}: {interaction.user.display_name} execute /ping !")
+
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -40,12 +41,13 @@ class Misc(commands.Cog):
     @slash_command(name="clear", description="Force le clear quotidien")
     async def clear_quotidien(self, interaction: Interaction):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} effectue la commande /clear !"
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return

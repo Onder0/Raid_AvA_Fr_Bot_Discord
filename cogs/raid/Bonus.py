@@ -22,6 +22,9 @@ class Bonus(commands.Cog):
         ),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         if personne == None:
             logger.info(
                 f"{interaction.user.id}: {interaction.user.display_name} execute la commande /bonus."
@@ -31,8 +34,6 @@ class Bonus(commands.Cog):
                 f"{interaction.user.id}: {interaction.user.display_name} execute la commande /bonus {personne.display_name} ."
             )
 
-        if not await verif_guild(interaction):
-            return
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -87,6 +88,10 @@ class Bonus(commands.Cog):
             )
 
         logger.info(f"Succès !\n")
+        if personne == None:
+            await logs(interaction, f"execute la commande /bonus")
+        else:
+            await logs(interaction, f"execute la commande /bonus {personne.mention}")
 
 
 def setup(bot):

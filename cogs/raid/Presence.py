@@ -20,12 +20,13 @@ class Presence(commands.Cog):
     )
     async def presence(self, interaction: Interaction):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /presence !"
         )
 
-        if not await verif_guild(interaction):
-            return
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
@@ -139,6 +140,7 @@ class Presence(commands.Cog):
         await interaction.followup.send(embed=embed_success("", msg[:-1]))
 
         logger.info("Succès\n")
+        await logs(interaction, f"execute la commande /presence")
 
 
 def setup(bot):

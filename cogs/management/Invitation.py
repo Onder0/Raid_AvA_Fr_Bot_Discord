@@ -36,12 +36,13 @@ class Invitation(commands.Cog):
 
 async def verification(interaction, personne: nextcord.Member, verif_role):
     await interaction.response.defer()
+    if not await verif_guild(interaction):
+        return
+
     logger.info(
         f"{interaction.user.id}: {interaction.user.display_name} execute la commande /{verif_role} {personne.display_name}"
     )
 
-    if not await verif_guild(interaction):
-        return
     cat_regles = nextcord.utils.get(interaction.guild.categories, id=settings.cat_regles)
     cat_tickets = nextcord.utils.get(interaction.guild.categories, id=settings.cat_tickets)
     if not await verif_categorie(interaction, cat_regles):
@@ -65,6 +66,7 @@ async def verification(interaction, personne: nextcord.Member, verif_role):
             )
         logger.info("Succès\n")
         await ghostPing(interaction.channel, personne)
+        await logs(interaction, f"execute la commande /{verif_role} {personne.mention}")
     except Exception as e:
         logger.error(f"Échec: {e}")
 

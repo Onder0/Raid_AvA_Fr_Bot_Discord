@@ -28,12 +28,13 @@ class Vouch(commands.Cog):
         ),
     ):
         await interaction.response.defer()
+        if not await verif_guild(interaction):
+            return
+
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /vouch {personne.display_name} {voucheur.display_name}"
         )
 
-        if not await verif_guild(interaction):
-            return
         cat_regles = nextcord.utils.get(interaction.guild.categories, id=settings.cat_regles)
         if not await verif_categorie(interaction, cat_regles):
             return
@@ -63,6 +64,7 @@ class Vouch(commands.Cog):
         await ghostPing(interaction.channel, voucheur)
 
         logger.info("Succès\n")
+        await logs(interaction, f"execute la commande /vouch {personne.mention} {voucheur.mention}")
 
     @slash_command(name="voucheur", description="Afficher par qui la personne a été vouch et quand")
     async def voucheur(
@@ -73,16 +75,18 @@ class Vouch(commands.Cog):
         ),
     ):
         await interaction.response.defer()
-        f"{interaction.user.id}: {interaction.user.display_name} execute la commande /voucheur {personne.display_name}"
-
         if not await verif_guild(interaction):
             return
+
+        logger.info(
+            f"{interaction.user.id}: {interaction.user.display_name} execute la commande /voucheur {personne.display_name}"
+        )
+
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
         if not await verif_chan(interaction, chan_commandes):
             return
 
         result = None
-
         results = Invits.filter(id_membre=personne.id)
 
         if result == None:
@@ -111,6 +115,7 @@ class Vouch(commands.Cog):
         await interaction.followup.send(embed=embed_success("", message[2:]))
 
         logger.info(f"Succès\n")
+        await logs(interaction, f"execute la commande /voucheur {personne.mention}")
 
 
 def setup(bot):
