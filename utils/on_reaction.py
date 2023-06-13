@@ -4,7 +4,7 @@ import re
 import asyncio
 
 
-async def payement(bot, payload):
+async def payement(interaction, bot, payload):
     from utils.embedder import embed_success, embed_warning, embed_error
     from utils.misc import ghostPing, logs
 
@@ -15,12 +15,12 @@ async def payement(bot, payload):
 
     admin = settings.admin
     modo = settings.modo
-    rl_op = settings.rl_op
-    rl = settings.rl
-    rl_test = settings.rl_test
+    shotcaller_expert = settings.shotcaller_expert
+    shotcaller = settings.shotcaller
+    baby_shotcaller = settings.baby_shotcaller
     rh = settings.rh
 
-    roles_requis = [admin, modo, rl_op, rl, rl_test, rh]
+    roles_requis = [admin, modo, shotcaller_expert, shotcaller, baby_shotcaller, rh]
     user_roles = [role.id for role in user.roles]
 
     # Vérifie que la personne peut faire le payement
@@ -105,8 +105,6 @@ async def payement(bot, payload):
 
             await ghostPing(chan, sanctionne)
 
-            await logs(payload, f"a réglé une sanction de {sanctionne.mention}.")
-
         elif reaction.emoji == "👎":
             logger.info(f"- {user.display_name} a abandonné !\n")
             # Supprimer la réaction de la personne sur le message initial
@@ -121,3 +119,5 @@ async def payement(bot, payload):
 
     # Supprimer le message de confirmation
     await confirmation_message.delete()
+    bot.fetch
+    await logs(interaction, f"a réglé une sanction de {sanctionne.mention}.")

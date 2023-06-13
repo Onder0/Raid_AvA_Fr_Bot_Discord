@@ -16,7 +16,6 @@ class UpdateRaids(commands.Cog):
 
     @tasks.loop(minutes=settings.time_loop_update_raids)
     async def liste_raids(self):
-        # print(f"Update liste raid en cours !\n")
         try:
             await verif_liste_raid(self)
         except Exception as e:
@@ -39,7 +38,6 @@ async def verif_liste_raid(self):
 
     response = requests.get(url, headers=headers)
 
-    # Vérifier si la requête a réussi
     if response.status_code == 200:
         data = response.json()
 
@@ -51,7 +49,7 @@ async def verif_liste_raid(self):
         ]
 
         events_bw = sorted(events_bw, key=lambda event: event["startTime"])
-        events_fs = sorted(events_bw, key=lambda event: event["startTime"])
+        events_fs = sorted(events_fs, key=lambda event: event["startTime"])
 
         events_by_day_bw = {}
         events_by_day_fs = {}
@@ -95,14 +93,15 @@ async def verif_liste_raid(self):
                 f"> `{event_hour}`  {groupe}  `{event_signup}` **[{event_title}]({event_url})** <t:{start_time}:R>"
             )
 
-        embed_bw = nextcord.Embed(title="Liste des Raids :", color=nextcord.Color.orange())
-        embed_fs = nextcord.Embed(title="Liste des Raids :", color=nextcord.Color.light_grey())
+        embed_bw = nextcord.Embed(
+            title="🟠 Liste des Raids - Bridgewatch 🟠", color=nextcord.Color.orange()
+        )
+        embed_fs = nextcord.Embed(
+            title="⚪ Liste des Raids - Fort Sterling ⚪", color=nextcord.Color.light_grey()
+        )
 
-        # Parcourir le dictionnaire des événements par jour et ajouter un champ à l'embed pour chaque jour avec la liste des événements pour ce jour
         for event_date, event_list in events_by_day_bw.items():
-            # Joindre les événements pour ce jour en les séparant par des sauts de ligne
             events_str = "\n".join(event_list)
-            # Ajouter le champ à l'embed avec la date de début comme nom et la liste des événements pour ce jour comme valeur
             embed_bw.add_field(name=f"{calendrier}  {event_date}", value=events_str, inline=False)
         for event_date, event_list in events_by_day_fs.items():
             events_str = "\n".join(event_list)
@@ -113,7 +112,6 @@ async def verif_liste_raid(self):
         if len(events_fs) == 0:
             embed_fs.add_field(name="Il n'y a pas de raids actuellement", value="\n", inline=False)
 
-        # Ajouter le dernier champ avec des informations supplémentaires
         embed_bw.add_field(
             name="",
             value=f"Les infos sont actualisées toutes les {settings.time_loop_update_raids} minutes.",
@@ -134,17 +132,12 @@ async def verif_liste_raid(self):
     bot_message_id_fs = None
 
     messages_bw = [message async for message in chan_raid_bw.history()]
-    messages_fs = [message async for message in chan_raid_bw.history()]
+    messages_fs = [message async for message in chan_raid_fs.history()]
 
     for index, message in enumerate(messages_bw):
         if message.author.id == bot_id:
             bot_message_id_bw = message.id
             break
-    for index, message in enumerate(messages_fs):
-        if message.author.id == bot_id:
-            bot_message_id_fs = message.id
-            break
-
     if bot_message_id_bw == None:
         await chan_raid_bw.send(embed=embed_bw)
     elif index != 0:
@@ -153,6 +146,10 @@ async def verif_liste_raid(self):
     else:
         await message.edit(embed=embed_bw)
 
+    for index, message in enumerate(messages_fs):
+        if message.author.id == bot_id:
+            bot_message_id_fs = message.id
+            break
     if bot_message_id_fs == None:
         await chan_raid_fs.send(embed=embed_fs)
     elif index != 0:
