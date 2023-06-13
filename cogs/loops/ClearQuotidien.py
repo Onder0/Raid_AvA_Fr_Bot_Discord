@@ -112,11 +112,13 @@ async def clear_quotidien(self):
     # ====================================================================================== #
     bot_id = settings.bot_id
     raid_helper_id = settings.raid_helper_id
-    chan_raid = self.bot.get_channel(settings.chan_annonces_raids)
-    logger.info(f"Suppression des messages dans {chan_raid} du serveur {self.bot.guilds[0].name}.")
+    chan_raid_bw = self.bot.get_channel(settings.chan_annonces_raids_bw)
+    logger.info(
+        f"Suppression des messages dans {chan_raid_bw} du serveur {self.bot.guilds[0].name}."
+    )
 
     messages = []
-    async for message in chan_raid.history(limit=None):
+    async for message in chan_raid_bw.history(limit=None):
         if message.author.id == raid_helper_id or message.author.id == bot_id:
             break
         messages.append(message)
@@ -124,7 +126,23 @@ async def clear_quotidien(self):
     for message in messages:
         if not message.pinned:
             await message.delete()
-    logger.info(f"Succès: Commandes supprimées dans {chan_raid}.\n")
+    logger.info(f"Succès: Commandes supprimées dans {chan_raid_bw}.\n")
+
+    chan_raid_fs = self.bot.get_channel(settings.chan_annonces_raids_fs)
+    logger.info(
+        f"Suppression des messages dans {chan_raid_fs} du serveur {self.bot.guilds[0].name}."
+    )
+
+    messages = []
+    async for message in chan_raid_fs.history(limit=None):
+        if message.author.id == raid_helper_id or message.author.id == bot_id:
+            break
+        messages.append(message)
+
+    for message in messages:
+        if not message.pinned:
+            await message.delete()
+    logger.info(f"Succès: Commandes supprimées dans {chan_raid_fs}.\n")
 
     # ===================================================================== #
     # Supprime les messages disant que les personnes ont réglé leurs dettes #
