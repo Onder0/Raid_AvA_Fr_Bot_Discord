@@ -81,9 +81,11 @@ class Vouch(commands.Cog):
         if not await verif_chan(interaction, chan_commandes):
             return
 
-        try:
-            results = Invits.filter(id_membre=personne.id)
-        except Exception:
+        result = None
+
+        results = Invits.filter(id_membre=personne.id)
+
+        if result == None:
             logger.warning(f"- {personne.display_name} n'a pas de vouch en DB !")
             await interaction.followup.send(
                 embed=embed_warning(
