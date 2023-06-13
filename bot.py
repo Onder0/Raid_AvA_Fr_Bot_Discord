@@ -10,9 +10,9 @@ logger.info("================================ Starting bot... ==================
 logger.info("=================================================================================")
 logger.warning(f"Environment: {settings.ENV_FOR_DYNACONF}")
 
-if settings.ENV_FOR_DYNACONF == "development":
+if settings.ENV_FOR_DYNACONF == "DEVELOPMENT":
     shutil.copy("./database/backup_dev.db", "./database/development.db")
-if settings.ENV_FOR_DYNACONF == "production":
+if settings.ENV_FOR_DYNACONF == "PRODUCTION":
     shutil.copy("./database/production.db", "./database/backup_prod.db")
 
 bot = commands.Bot(
