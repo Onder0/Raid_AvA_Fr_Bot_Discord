@@ -25,15 +25,6 @@ async def verif_admin(interaction):
 async def verif_guild(interaction):
     # Envoie un message d'erreur si la guilde n'est pas whitelist
     if interaction.guild.id not in settings.guild_id:
-        from utils.embedder import embed_error
-
-        error_msg = await interaction.followup.send(
-            embed=embed_error("", "Votre serveur n'est pas autorisé à utiliser ce bot !")
-        )
-        logger.warning(f"Échec: Le serveur n'était pas autorisé=> id = {interaction.guild_id}.")
-        logger.warning(f"=> nom : {interaction.guild.name} / id : {interaction.guild.id}\n")
-        await asyncio.sleep(60)
-        await error_msg.delete()
         return False
     return True
 
