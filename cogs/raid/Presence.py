@@ -2,9 +2,8 @@ from utils import *
 from config import *
 import nextcord
 import requests
-from nextcord import SlashOption, slash_command, Interaction
+from nextcord import slash_command, message_command, Interaction
 from nextcord.ext import commands
-from datetime import datetime
 
 
 class Presence(commands.Cog):
@@ -15,10 +14,8 @@ class Presence(commands.Cog):
     async def on_ready(self):
         logger.info("Presence.py is ready!")
 
-    @slash_command(
-        name="presence", description="Retourne les membres manquant et les membres s'étant rajouté"
-    )
-    async def presence(self, interaction: Interaction):
+    @message_command(name="presence")
+    async def presence(self, interaction: Interaction, annonce_raid: nextcord.Message):
         await interaction.response.defer()
         if not await verif_guild(interaction):
             return
@@ -28,21 +25,20 @@ class Presence(commands.Cog):
         )
 
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
-        if not await verif_chan(interaction, chan_commandes):
-            return
-        voc_attente_raid = interaction.guild.get_channel(settings.voc_attente_bonus)
-        if not voc_attente_raid.states:
+
+        voc_attente_raid = interaction.guild.get_channel(settings.voc_attente_raid)
+        if not voc_attente_raid.members:
             error_msg = await interaction.followup.send(
-                embed=embed_error("", f"Il n'y a personne dans {voc_attente_raid.mention} !")
+                embed=embed_error(
+                    "", f"Il n'y a personne dans {voc_attente_raid.mention} !", ephemeral=True
+                )
             )
             logger.warning(f"- Il n'y a personne dans {voc_attente_raid.mention} !")
-            await asyncio.sleep(10)
+            await asyncio.sleep(5)
             await error_msg.delete()
             logger.info(f"Échec\n")
 
-        user_id = settings.raid_helper_id
-        api_key = settings.raid_helper_token
-        chan_annonces_raids = interaction.guild.get_channel(settings.chan_annonces_raids)
+        await logs(interaction, f"execute la commande /presence")
 
         inscritsIds = []
         absentPresentIds = []
@@ -50,41 +46,8 @@ class Presence(commands.Cog):
 
         logger.info("+ Récupération des Ids !")
 
-        # ===== récup joueurs inscrits ===== #
-        messages = await chan_annonces_raids.history(limit=None).flatten()
-        import re
-
-        user_messages = [message for message in messages if message.author.id == user_id]
-
-        now = datetime.now()
-
-        closest_event = None
-        closest_event_time = float("inf")  # Valeur initiale pour représenter l'infini
-
-        for user_message in user_messages:
-            if user_message.embeds:
-                embed = user_message.embeds[0]
-                for field in embed.fields:
-                    value = field.value
-                    match = re.search(r"<t:(\d+):", value)
-                    if match:
-                        timestamp = int(match.group(1))
-                        event_time = datetime.fromtimestamp(timestamp)
-                        time_difference = event_time - now
-
-                        if (
-                            time_difference.total_seconds() >= 0
-                            and time_difference.total_seconds() < closest_event_time
-                        ):
-                            closest_event = user_message
-                            closest_event_time = time_difference.total_seconds()
-
-        if closest_event is None:
-            logger.warning("- Aucun événement trouvé.")
-            await interaction.followup.send(embed=embed_error("", "Aucun événement trouvé."))
-            return
-
-        url = f"https://raid-helper.dev/api/v2/events/{closest_event.id}"
+        api_key = settings.raid_helper_token
+        url = f"https://raid-helper.dev/api/v2/events/{annonce_raid.id}"
         headers = {"Authorization": api_key}
         response = requests.get(url, headers=headers)
 
@@ -119,6 +82,7 @@ class Presence(commands.Cog):
         # ===== Gestion du message ===== #
 
         msg = ""
+        warning = True
 
         msg = f"**__Joueurs absents :__**\n"
         if len(absentsInscritsIds) > 0:
@@ -126,6 +90,7 @@ class Presence(commands.Cog):
                 msg += f"- {absentsInscritsId}\n"
         else:
             msg += "**Aucun**\n"
+            warning = False
 
         if len(absentVocalIds) > 0:
             msg += f"\n**__Joueur non inscrits :__**\n"
@@ -137,10 +102,21 @@ class Presence(commands.Cog):
             for absentPresentId in absentPresentIds:
                 msg += f"- {absentPresentId}\n"
 
-        await interaction.followup.send(embed=embed_success("", msg[:-1]))
+        msg_presence = await interaction.followup.send(
+            embed=embed_success("", f"Le résultat se trouve dans {chan_commandes.jump_url} !")
+        )
+
+        msg_embed = f"Présence de {annonce_raid.jump_url} par {interaction.user.mention} :\n\n"
+        msg_embed += msg[:-1]
+        if warning:
+            await chan_commandes.send(embed=embed_warning("", msg_embed))
+        else:
+            await chan_commandes.send(embed=embed_success("", msg_embed))
 
         logger.info("Succès\n")
-        await logs(interaction, f"execute la commande /presence")
+
+        await asyncio.sleep(10)
+        await msg_presence.delete()
 
 
 def setup(bot):
