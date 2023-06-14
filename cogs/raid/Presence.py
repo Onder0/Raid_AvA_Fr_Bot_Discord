@@ -1,8 +1,9 @@
 from utils import *
 from config import *
 import nextcord
-import requests
 from nextcord import slash_command, message_command, Interaction
+import requests
+import datetime
 from nextcord.ext import commands
 
 
@@ -26,14 +27,14 @@ class Presence(commands.Cog):
 
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
 
-        voc_attente_raid = interaction.guild.get_channel(settings.voc_attente_raid)
-        if not voc_attente_raid.members:
+        voc_chan = interaction.user.voice.channel
+        if not voc_chan.members:
             error_msg = await interaction.followup.send(
                 embed=embed_error(
-                    "", f"Il n'y a personne dans {voc_attente_raid.mention} !", ephemeral=True
+                    "", f"Il n'y a personne dans {voc_chan.mention} !", ephemeral=True
                 )
             )
-            logger.warning(f"- Il n'y a personne dans {voc_attente_raid.mention} !")
+            logger.warning(f"- Il n'y a personne dans {voc_chan.mention} !")
             await asyncio.sleep(5)
             await error_msg.delete()
             logger.info(f"Échec\n")
@@ -71,7 +72,7 @@ class Presence(commands.Cog):
 
         # ===== récup joueurs en vocal ===== #
 
-        for member in voc_attente_raid.members:
+        for member in voc_chan.members:
             rawVocalIds.append(member.id)
         vocalIds = [f"<@{id}>" for id in rawVocalIds]
         logger.info("+ Ids des joueurs en voc récupérées !")
@@ -80,6 +81,9 @@ class Presence(commands.Cog):
         absentVocalIds = set(vocalIds) - set(inscritsIds) - set(absentPresentIds)
 
         # ===== Gestion du message ===== #
+
+        now = datetime.datetime.now()
+        current_time = now.strftime("%H:%M:%S")
 
         msg = ""
         warning = True
@@ -106,7 +110,7 @@ class Presence(commands.Cog):
             embed=embed_success("", f"Le résultat se trouve dans {chan_commandes.jump_url} !")
         )
 
-        msg_embed = f"Présence de {annonce_raid.jump_url} par {interaction.user.mention} :\n\n"
+        msg_embed = f"{interaction.user.mention} execute /presence à `{current_time}`\n{annonce_raid.jump_url} vs {voc_chan.mention}\n\n"
         msg_embed += msg[:-1]
         if warning:
             await chan_commandes.send(embed=embed_warning("", msg_embed))
