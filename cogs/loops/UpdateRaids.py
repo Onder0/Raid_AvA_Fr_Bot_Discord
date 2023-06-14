@@ -17,7 +17,7 @@ class UpdateRaids(commands.Cog):
     @tasks.loop(minutes=settings.time_loop_update_raids)
     async def liste_raids(self):
         try:
-            await verif_liste_raid(self)
+            await update_liste_raids(self)
         except Exception as e:
             logger.error(f"Échec: {e}\n")
 
@@ -26,10 +26,7 @@ class UpdateRaids(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-async def verif_liste_raid(self):
-    bot_id = settings.bot_id
-    chan_raid_bw = self.bot.get_channel(settings.chan_annonces_raids_bw)
-    chan_raid_fs = self.bot.get_channel(settings.chan_annonces_raids_fs)
+async def update_liste_raids(self):
     server_id = settings.guild_id[0]
     api_key = settings.raid_helper_token
 
@@ -38,125 +35,89 @@ async def verif_liste_raid(self):
 
     response = requests.get(url, headers=headers)
 
-    if response.status_code == 200:
-        data = response.json()
-
-        events_bw = [
-            event for event in data["postedEvents"] if int(event["channelId"]) == chan_raid_bw.id
-        ]
-        events_fs = [
-            event for event in data["postedEvents"] if int(event["channelId"]) == chan_raid_fs.id
-        ]
-
-        events_bw = sorted(events_bw, key=lambda event: event["startTime"])
-        events_fs = sorted(events_fs, key=lambda event: event["startTime"])
-
-        events_by_day_bw = {}
-        events_by_day_fs = {}
-
-        guild = chan_raid_bw.guild
-        calendrier = nextcord.utils.get(guild.emojis, name="calendrier")
-        groupe = nextcord.utils.get(guild.emojis, name="groupe")
-
-        for event in events_bw:
-            start_time = event["startTime"]
-            event_date = datetime.datetime.fromtimestamp(start_time).strftime("%d-%m-%Y")
-            event_hour = datetime.datetime.fromtimestamp(start_time).strftime("%H:%M")
-            event_signup = event["signUpsAmount"]
-            event_title = event["title"]
-
-            event_url = (
-                f"https://discord.com/channels/{server_id}/{event['channelId']}/{event['id']}"
-            )
-
-            if event_date not in events_by_day_bw:
-                events_by_day_bw[event_date] = []
-
-            events_by_day_bw[event_date].append(
-                f"> `{event_hour}`  {groupe}  `{event_signup}` **[{event_title}]({event_url})** <t:{start_time}:R>"
-            )
-        for event in events_fs:
-            start_time = event["startTime"]
-            event_date = datetime.datetime.fromtimestamp(start_time).strftime("%d-%m-%Y")
-            event_hour = datetime.datetime.fromtimestamp(start_time).strftime("%H:%M")
-            event_signup = event["signUpsAmount"]
-            event_title = event["title"]
-
-            event_url = (
-                f"https://discord.com/channels/{server_id}/{event['channelId']}/{event['id']}"
-            )
-
-            if event_date not in events_by_day_fs:
-                events_by_day_fs[event_date] = []
-
-            events_by_day_fs[event_date].append(
-                f"> `{event_hour}`  {groupe}  `{event_signup}` **[{event_title}]({event_url})** <t:{start_time}:R>"
-            )
-
-        embed_bw = nextcord.Embed(
-            title="🟠 Liste des Raids - Bridgewatch 🟠", color=nextcord.Color.orange()
-        )
-        embed_fs = nextcord.Embed(
-            title="⚪ Liste des Raids - Fort Sterling ⚪", color=nextcord.Color.light_grey()
-        )
-
-        for event_date, event_list in events_by_day_bw.items():
-            events_str = "\n".join(event_list)
-            embed_bw.add_field(name=f"{calendrier}  {event_date}", value=events_str, inline=False)
-        for event_date, event_list in events_by_day_fs.items():
-            events_str = "\n".join(event_list)
-            embed_fs.add_field(name=f"{calendrier}  {event_date}", value=events_str, inline=False)
-
-        if len(events_bw) == 0:
-            embed_bw.add_field(name="Il n'y a pas de raids actuellement", value="\n", inline=False)
-        if len(events_fs) == 0:
-            embed_fs.add_field(name="Il n'y a pas de raids actuellement", value="\n", inline=False)
-
-        embed_bw.add_field(
-            name="",
-            value=f"Les infos sont actualisées toutes les {settings.time_loop_update_raids} minutes.",
-        )
-        embed_fs.add_field(
-            name="",
-            value=f"Les infos sont actualisées toutes les {settings.time_loop_update_raids} minutes.",
-        )
-    else:
+    if response.status_code != 200:
         logger.warning(
             f"Échec de la requête à l'API Raid Helper => Status : {response.status_code}\n"
         )
+        return
+    data = response.json()
 
-    if embed_bw is None and embed_fs == None:
+    await update_liste_ville(self, data, "fs")
+    await update_liste_ville(self, data, "bw")
+
+
+async def update_liste_ville(self, data, ville):
+    bot_id = settings.bot_id
+    chan_ville = f"chan_annonces_raids_{ville}"
+    chan_raid = self.bot.get_channel(getattr(settings, chan_ville))
+
+    events = [event for event in data["postedEvents"] if int(event["channelId"]) == chan_raid]
+    events = sorted(events, key=lambda event: event["startTime"])
+
+    events_by_day = {}
+
+    server_id = settings.guild_id[0]
+    guild = chan_raid.guild
+    calendrier = nextcord.utils.get(guild.emojis, name="calendrier")
+    groupe = nextcord.utils.get(guild.emojis, name="groupe")
+
+    for event in events:
+        start_time = event["startTime"]
+        event_date = datetime.datetime.fromtimestamp(start_time).strftime("%d-%m-%Y")
+        event_hour = datetime.datetime.fromtimestamp(start_time).strftime("%H:%M")
+        event_signup = event["signUpsAmount"]
+        event_title = event["title"]
+
+        event_url = f"https://discord.com/channels/{server_id}/{event['channelId']}/{event['id']}"
+
+        if event_date not in events_by_day:
+            events_by_day[event_date] = []
+
+        events_by_day[event_date].append(
+            f"> `{event_hour}`  {groupe}  `{event_signup}` **[{event_title}]({event_url})** <t:{start_time}:R>"
+        )
+
+    if ville == "fs":
+        embed = nextcord.Embed(
+            title="⚪ Liste des Raids - Fort Sterling ⚪", color=nextcord.Color.light_grey()
+        )
+    elif ville == "bw":
+        embed = nextcord.Embed(
+            title="🟠 Liste des Raids - Bridgewatch 🟠", color=nextcord.Color.orange()
+        )
+
+    for event_date, event_list in events_by_day.items():
+        events_str = "\n".join(event_list)
+        embed.add_field(name=f"{calendrier}  {event_date}", value=events_str, inline=False)
+
+    if len(events) == 0:
+        embed.add_field(name="Il n'y a pas de raids actuellement", value="\n", inline=False)
+
+    if embed is None:
+        logger.warning(f"Échec: Update liste raid - Erreur de création de l'embed !\n")
         return
 
-    bot_message_id_bw = None
-    bot_message_id_fs = None
+    embed.add_field(
+        name="",
+        value=f"Les infos sont actualisées toutes les {settings.time_loop_update_raids} minutes.",
+    )
 
-    messages_bw = [message async for message in chan_raid_bw.history()]
-    messages_fs = [message async for message in chan_raid_fs.history()]
+    bot_message_id = None
 
-    for index, message in enumerate(messages_bw):
+    messages = [message async for message in chan_raid.history()]
+
+    for index, message in enumerate(messages):
         if message.author.id == bot_id:
-            bot_message_id_bw = message.id
+            bot_message_id = message.id
             break
-    if bot_message_id_bw == None:
-        await chan_raid_bw.send(embed=embed_bw)
-    elif index != 0:
-        await messages_bw[index].delete()
-        await chan_raid_bw.send(embed=embed_bw)
-    else:
-        await message.edit(embed=embed_bw)
 
-    for index, message in enumerate(messages_fs):
-        if message.author.id == bot_id:
-            bot_message_id_fs = message.id
-            break
-    if bot_message_id_fs == None:
-        await chan_raid_fs.send(embed=embed_fs)
+    if bot_message_id == None:
+        await chan_raid.send(embed=embed)
     elif index != 0:
-        await messages_fs[index].delete()
-        await chan_raid_fs.send(embed=embed_fs)
+        await messages[index].delete()
+        await chan_raid.send(embed=embed)
     else:
-        await message.edit(embed=embed_fs)
+        await message.edit(embed=embed)
 
 
 def setup(bot):
