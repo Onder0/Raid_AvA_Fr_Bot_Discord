@@ -118,7 +118,7 @@ async def clear_quotidien(self):
     )
 
     messages = []
-    async for message in chan_raid_bw.history(limit=None):
+    async for message in chan_raid_bw.history(limit=None, oldest_first=True):
         if message.author.id == raid_helper_id or message.author.id == bot_id:
             break
         messages.append(message)
@@ -134,7 +134,7 @@ async def clear_quotidien(self):
     )
 
     messages = []
-    async for message in chan_raid_fs.history(limit=None):
+    async for message in chan_raid_fs.history(limit=None, oldest_first=True):
         if message.author.id == raid_helper_id or message.author.id == bot_id:
             break
         messages.append(message)
