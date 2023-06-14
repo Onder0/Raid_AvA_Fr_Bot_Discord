@@ -5,13 +5,14 @@ from nextcord import SlashOption, slash_command, Interaction
 from nextcord.ext import commands
 from cogs.management.Model_Rankup import Rankup
 
+
 ROLES = [
     {"name": "Off-Tank", "value": "off_tank"},
     {"name": "Healer", "value": "healer"},
     {"name": "Arcanes", "value": "arcanes"},
     {"name": "Souchefer", "value": "souchefer"},
     {"name": "Support", "value": "support"},
-    {"name": "HP Cute", "value": "hp_cut"},
+    {"name": "HP Cut", "value": "hp_cut"},
     {"name": "DPS", "value": "dps"},
     {"name": "Scout", "value": "scout"},
 ]
@@ -58,11 +59,20 @@ class Rank(commands.Cog):
                 role_rankup = choice["value"]
                 break
         role_normal = nextcord.utils.get(interaction.guild.roles, id=getattr(settings, role_rankup))
-        role_rankup_op = f"{role_rankup}_op"
-        role_op = nextcord.utils.get(interaction.guild.roles, id=getattr(settings, role_rankup_op))
+        if role != "HP Cut":
+            role_rankup_expert = f"{role_rankup}_expert"
+            role_expert = nextcord.utils.get(
+                interaction.guild.roles, id=getattr(settings, role_rankup_expert)
+            )
+        elite_expert = nextcord.utils.get(interaction.guild.roles, id=settings.elite_expert)
+        if role == "Support":
+            hp_cut = nextcord.utils.get(interaction.guild.roles, id=settings.hp_cut)
+        if role == "HP Cut":
+            support_expert = nextcord.utils.get(interaction.guild.roles, id=settings.support_expert)
 
         result_rankup, created = Rankup.get_or_create(id_membre=personne.id)
         setattr(result_rankup, "nom_membre", personne.display_name)
+        result_rankup.save()
 
         plus_un = getattr(result_rankup, role_rankup)
 
@@ -71,40 +81,122 @@ class Rank(commands.Cog):
         message_commande = ""
         embed_commande = ""
 
-        if plus_un == 5:
-            message += f":star2: {personne.mention} est déjà {role_op.mention} ! :star2:\n"
-            embed = embed_warning("", message)
-            embed_commande = embed_success("", message)
-            logger.info(f"+ {personne.display_name} était déjà {role_op}")
-        else:
-            plus_un += 1
-            setattr(result_rankup, role_rankup, plus_un)
-            if plus_un == 5:
-                await personne.remove_roles(role_normal)
-                await personne.add_roles(role_op)
-                message += (
-                    f"{personne.mention} à atteint le +5, il est maintenant {role_op.mention} !"
-                )
-                message_commande += f"{role_op.mention} atteint pour {personne.mention}"
-                embed = embed_success("", message)
-                embed_commande = embed_success("", message_commande)
-                logger.info(f"+ {personne.display_name} est maintenant {role_op}")
-            else:
-                await personne.add_roles(role_normal)
-                message += f"{personne.mention} est maintenant {role_normal.mention} +{plus_un} !"
-                message_commande += f"{role_normal.mention} +{plus_un} pour {personne.mention}"
-                embed = embed_success("", message)
-                embed_commande = embed_success("", message_commande)
-                logger.info(f"+ {personne.display_name} est {role_normal} +{plus_un} .")
+        expert = False
+        elite = False
 
-        result_rankup.save()
+        if role != "Scout" and elite_expert in personne.roles:
+            message += f":crown: :fire: {personne.mention} est déjà {elite_expert.mention} ! :fire: :crown:\n"
+            message_commande += f"{personne.mention} est déjà {elite_expert.mention} !"
+            expert = True
+            logger.info(f"+ {personne.display_name} est déjà {elite_expert}")
+
+        elif role == "HP Cut":
+            if plus_un == 1:
+                if getattr(result_rankup, "support") == 5:
+                    message += (
+                        f":star2: {personne.mention} est déjà {support_expert.mention} ! :start2:"
+                    )
+                    message_commande += f"{personne.mention} est déjà {support_expert.mention}"
+                    logger.info(f"+ {personne.display_name} est déjà {support_expert}")
+                else:
+                    message += f"{personne.mention} est déjà {role_normal} !"
+                    message_commande += f"{personne.mention} est déjà {role_normal}"
+                    logger.info(f"+ {personne.display_name} est déjà {role_normal}")
+                embed = embed_warning("", message)
+                embed_commande = embed_success("", message)
+            else:
+                plus_un += 1
+                setattr(result_rankup, role_rankup, plus_un)
+                result_rankup.save()
+                if getattr(result_rankup, "support") == 5:
+                    support = nextcord.utils.get(interaction.guild.roles, id=settings.support)
+                    support_expert = nextcord.utils.get(
+                        interaction.guild.roles, id=settings.support_expert
+                    )
+                    await personne.remove_roles(role_normal)
+                    await personne.remove_roles(support)
+                    await personne.add_roles(support_expert)
+                    expert = True
+                    elite = await verif_elite(interaction, personne)
+                    message += f":star2: {personne.mention} est maintenant {support_expert.mention} ! :star2:"
+                    message_commande += (
+                        f"{personne.mention} est maintenant {support_expert.mention}"
+                    )
+                    logger.info(f"+ {personne.display_name} est maintenant {support_expert}")
+                else:
+                    await personne.add_roles(role_normal)
+                    message += f":star2: {personne.mention} est maintenant {role_normal.mention} ! :star2:\n"
+                    message_commande += f"{personne.mention} est maintenant {role_normal.mention}"
+                    logger.info(f"+ {personne.display_name} est maintenant {role_normal}")
+        else:
+            if plus_un == 5:
+                if role == "Support" and getattr(result_rankup, "hp_cut") == 0:
+                    message += f"{personne.mention} est déjà +5 {role_normal.mention} mais n'est pas {hp_cut.mention} !"
+                    message_commande += f"{personne.mention} +5 {role_normal} mais pas {hp_cut}"
+                    logger.info(
+                        f"{personne.display_name} est déjà +5 {role_normal.mention} mais n'est pas {hp_cut} !"
+                    )
+                else:
+                    message += (
+                        f":star2: {personne.mention} est déjà {role_expert.mention} ! :star2:\n"
+                    )
+                    message_commande += f"{personne.mention} est déjà {role_expert.mention}"
+                    expert = True
+                    logger.info(f"+ {personne.display_name} est déjà {role_expert}")
+            else:
+                plus_un += 1
+                setattr(result_rankup, role_rankup, plus_un)
+                result_rankup.save()
+                if plus_un == 5:
+                    if role == "Support" and getattr(result_rankup, "hp_cut") == 0:
+                        message += f"{personne.mention} a atteint +5 {role_normal.mention} mais pas {hp_cut.mention} !"
+                        message_commande += (
+                            f"{personne.mention} +5 {role_normal.mention} mais pas {hp_cut} !"
+                        )
+                        logger.info(
+                            f"{personne.display_name} est déjà +5 {role_normal.mention} mais pas {hp_cut} !"
+                        )
+                    else:
+                        if role == "Support":
+                            await personne.remove_roles(hp_cut)
+                        await personne.remove_roles(role_normal)
+                        await personne.add_roles(role_expert)
+                        expert = True
+                        elite = await verif_elite(interaction, personne)
+                        message += f":star2: {personne.mention} a atteint le +5, il est maintenant {role_expert.mention} ! :star2:"
+                        message_commande += f"{personne.mention} a atteint {role_expert.mention}"
+                        logger.info(f"+ {personne.display_name} est maintenant {role_expert}")
+
+                else:
+                    await personne.add_roles(role_normal)
+                    message += (
+                        f"{personne.mention} est maintenant {role_normal.mention} +{plus_un} !"
+                    )
+                    message_commande += f"{personne.mention} {role_normal.mention} +{plus_un}"
+                    logger.info(f"+ {personne.display_name} est {role_normal} +{plus_un} .")
+
+        if elite:
+            await personne.add_roles(elite_expert)
+            message = f":crown: :fire: **{personne.mention} passe {elite_expert.mention} !** :fire: :crown:"
+            message_commande = f"{personne.mention} {elite_expert.mention} !"
+            logger.info(f"+ {personne.display_name} est maintenant {elite_expert}")
+
+        if expert:
+            embed = embed_warning("", message)
+        else:
+            embed = embed_success("", message)
+
+        embed_commande = embed_success("", message_commande)
 
         await interaction.followup.send(embed=embed_commande)
         chan_rankup = interaction.guild.get_channel(settings.chan_rankup)
         await chan_rankup.send(embed=embed)
+
         await ghostPing(chan_rankup, personne)
         logger.info(f"Succès !\n")
         await logs(interaction, f"execute la commande /rankup {role} {personne.mention}")
+
+    # ========== ========== ========== ========== ========== ========== ========== ========== ========== #
 
     @slash_command(
         name="derank",
@@ -144,24 +236,32 @@ class Rank(commands.Cog):
         setattr(result_rankup, "nom_membre", personne.display_name)
 
         plus_un = getattr(result_rankup, role_rankup)
-        if plus_un == 1:
-            plus_un = 0
+        if plus_un == 0:
+            logger.warning(f"- {personne.display_name} n'avait pas de +1 en {role_normal} !")
+            interaction.followup.send(
+                embed=embed_error(
+                    "", f"{personne.mention} n'avait pas de +1 en {role_normal.mention} !"
+                )
+            )
+            return
         else:
             plus_un -= 1
+
         setattr(result_rankup, role_rankup, plus_un)
         result_rankup.save()
 
         message = ""
 
         if plus_un == 4:
-            role_rankup_op = f"{role_rankup}_op"
-            role_op = nextcord.utils.get(
-                interaction.guild.roles, id=getattr(settings, role_rankup_op)
+            role_rankup_expert = f"{role_rankup}_expert"
+            role_expert = nextcord.utils.get(
+                interaction.guild.roles, id=getattr(settings, role_rankup_expert)
             )
-            await personne.remove_roles(role_op)
-            message += f"{personne.mention} n'est plus {role_op.mention} !\nIl est revenu à {role_normal.mention} +{plus_un} !"
+            await personne.remove_roles(role_expert)
+            await personne.add_roles(role_normal)
+            message += f"{personne.mention} n'est plus {role_expert.mention} !\nIl est revenu à {role_normal.mention} +{plus_un} !"
             logger.info(
-                f"+ {personne.display_name} n'est plus {role_op}. => {role_normal} +{plus_un}."
+                f"+ {personne.display_name} n'est plus {role_expert}. => {role_normal} +{plus_un}."
             )
         elif plus_un == 0:
             message += f"{personne.mention} n'est plus rank en {role_normal.mention} !"
@@ -177,6 +277,30 @@ class Rank(commands.Cog):
         await ghostPing(chan_rankup, personne)
         logger.info(f"Succès !\n")
         await logs(interaction, f"execute la commande /derank {role} {personne.mention} {raison}")
+
+
+async def verif_elite(interaction, personne):
+    rankup = Rankup.get(Rankup.id_membre == personne.id)
+    fields = rankup._meta.fields
+    for field_name, field in fields.items():
+        if field_name not in ["id_membre", "nom_membre", "hp_cut", "scout"]:
+            value = getattr(rankup, field_name)
+            if value != 5:
+                return False
+    if rankup.hp_cut == 0:
+        return False
+
+    for role in ROLES:
+        if role["value"] not in ["hp_cut", "scout"]:
+            role_expert_name = f"{role['value']}_expert"
+            role_expert = nextcord.utils.get(
+                interaction.guild.roles, id=getattr(settings, role_expert_name)
+            )
+            await personne.remove_roles(role_expert)
+    hp_cut = nextcord.utils.get(interaction.guild.roles, id=settings.hp_cut)
+    await personne.remove_roles(hp_cut)
+
+    return True
 
 
 def setup(bot):
