@@ -20,6 +20,20 @@ class Presence(commands.Cog):
         await interaction.response.defer()
         if not await verif_guild(interaction):
             return
+        chan_raid_fs = interaction.guild.get_channel(settings.chan_annonces_raids_FS)
+        chan_raid_bw = interaction.guild.get_channel(settings.chan_annonces_raids_BW)
+        if interaction.channel != chan_raid_fs and interaction.channel != chan_raid_bw:
+            error_msg = await interaction.followup.send(
+                embed=embed_error(
+                    "", f"Vous devez effectuer cette commande dans un chan d'annonce de raid !"
+                )
+            )
+            logger.warning(
+                f"- La commande a été exécutée dans {interaction.channel} au lieu d'un chan d'annonce raid !"
+            )
+            await asyncio.sleep(10)
+            await error_msg.delete()
+            logger.info(f"Échec\n")
 
         logger.info(
             f"{interaction.user.id}: {interaction.user.display_name} execute la commande /presence !"
