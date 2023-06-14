@@ -1,7 +1,7 @@
 from utils import *
 from config import *
 import nextcord
-from nextcord import slash_command, Interaction, SlashOption
+from nextcord import slash_command, user_command, Interaction, SlashOption
 from nextcord.ext import commands
 
 
@@ -13,6 +13,10 @@ class Invitation(commands.Cog):
     async def on_ready(self):
         logger.info("Verif.py is ready!")
 
+    @user_command(name="Membre")
+    async def membre_user(self, interaction: Interaction, personne: nextcord.Member):
+        await verification(interaction, personne, "membre")
+
     @slash_command(name="membre", description="Ajoute le rôle membre.")
     async def membre(
         self,
@@ -22,6 +26,10 @@ class Invitation(commands.Cog):
         ),
     ):
         await verification(interaction, personne, "membre")
+
+    @user_command(name="Raider")
+    async def raider_user(self, interaction: Interaction, personne: nextcord.Member):
+        await verification(interaction, personne, "raider")
 
     @slash_command(name="raider", description="Ajoute le rôle raider et enlève membre si besoin.")
     async def raider(

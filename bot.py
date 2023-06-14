@@ -28,6 +28,7 @@ initial_extensions = [
     "cogs.loops.UpdateRaids",
     "cogs.management.Invitation",
     "cogs.management.Rank",
+    "cogs.management.Roles",
     "cogs.management.Vouch",
     "cogs.misc.Misc",
     "cogs.misc.Temp",
