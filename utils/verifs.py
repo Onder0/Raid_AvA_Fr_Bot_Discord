@@ -1,5 +1,22 @@
 from config import *
+import nextcord
 import asyncio
+
+
+async def verif_admin(interaction):
+    from utils.embedder import embed_error
+
+    admin = nextcord.utils.get(interaction.guild.roles, id=settings.admin)
+    if admin not in interaction.user.role or interaction.user.id != 244114412254789632:
+        error_msg = await interaction.followup.send(
+            embed=embed_error("", f"Commande réservée aux {admin.mention} !")
+        )
+        logger.warning(f"- La commande a été exécutée par {interaction.user.display_name} !")
+        await asyncio.sleep(10)
+        await error_msg.delete()
+        logger.info(f"Échec\n")
+        return False
+    return True
 
 
 async def verif_guild(interaction):
