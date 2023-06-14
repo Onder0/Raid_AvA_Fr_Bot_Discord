@@ -7,7 +7,7 @@ async def verif_admin(interaction):
     from utils.embedder import embed_error
 
     admin = nextcord.utils.get(interaction.guild.roles, id=settings.admin)
-    if admin not in interaction.user.role or interaction.user.id != 244114412254789632:
+    if admin not in interaction.user.roles or interaction.user.id != 244114412254789632:
         error_msg = await interaction.followup.send(
             embed=embed_error("", f"Commande réservée aux {admin.mention} !")
         )
