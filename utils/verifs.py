@@ -6,10 +6,13 @@ import asyncio
 async def verif_admin(interaction):
     from utils.embedder import embed_error
 
-    admin = nextcord.utils.get(interaction.guild.roles, id=settings.admin)
-    if admin not in interaction.user.roles or interaction.user.id != 244114412254789632:
+    admin_id = settings.admin
+    roles_requis = [admin_id]
+    user_roles = [role.id for role in interaction.user.roles]
+    a_role_requis = any(role_id in user_roles for role_id in roles_requis)
+    if not a_role_requis:
         error_msg = await interaction.followup.send(
-            embed=embed_error("", f"Commande réservée aux {admin.mention} !")
+            embed=embed_error("", f"Commande réservée aux Admins !")
         )
         logger.warning(f"- La commande a été exécutée par {interaction.user.display_name} !")
         await asyncio.sleep(10)
