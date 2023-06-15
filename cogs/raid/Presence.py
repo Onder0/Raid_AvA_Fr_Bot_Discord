@@ -41,14 +41,16 @@ class Presence(commands.Cog):
 
         chan_commandes = interaction.guild.get_channel(settings.chan_commandes)
 
-        voc_chan = interaction.user.voice.channel
-        if not voc_chan.members:
+        if not interaction.user.voice:
             error_msg = await interaction.followup.send(
                 embed=embed_error(
-                    "", f"Il n'y a personne dans {voc_chan.mention} !", ephemeral=True
+                    "",
+                    f"Vous devez être connecté a un channel vocal !",
                 )
             )
-            logger.warning(f"- Il n'y a personne dans {voc_chan.mention} !")
+            logger.warning(
+                f"- {interaction.user.display_name} n'est pas connecté à un salon vocal !"
+            )
             await asyncio.sleep(5)
             await error_msg.delete()
             logger.info(f"Échec\n")
@@ -85,6 +87,7 @@ class Presence(commands.Cog):
             return
 
         # ===== récup joueurs en vocal ===== #
+        voc_chan = interaction.user.voice.channel
 
         for member in voc_chan.members:
             rawVocalIds.append(member.id)
