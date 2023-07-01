@@ -90,6 +90,7 @@ class Vouch(commands.Cog):
         results = Invits.filter(id_membre=personne.id)
 
         if result == None:
+            joined_date = personne.joined_at.strftime("%d-%m-%Y")
             logger.warning(f"- {personne.display_name} n'a pas de vouch en DB !")
             await interaction.followup.send(
                 embed=embed_warning(
@@ -97,8 +98,8 @@ class Vouch(commands.Cog):
                     f"{personne.mention} n'est pas vouch ! Cause possible \n"
                     f"- Il n'a pas encore été vouch.\n"
                     f"- Il a rejoint le serv avant le `10-04-2023`.\n"
-                    f"- Il a été vouch avant le `03-06-2023` par quelqu'un ayant quitté le discord.\n"
-                    f"- Il a rejoint le discord le `{personne.joined_at}`.",
+                    f"- Il a été vouch avant le `03-06-2023` par quelqu'un ayant quitté le discord.\n\n"
+                    f"=> Il a rejoint le discord le `{joined_date}`.",
                 )
             )
             logger.info(f"Échec\n")
