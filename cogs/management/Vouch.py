@@ -97,7 +97,8 @@ class Vouch(commands.Cog):
                     f"{personne.mention} n'est pas vouch ! Cause possible \n"
                     f"- Il n'a pas encore été vouch.\n"
                     f"- Il a rejoint le serv avant le `10-04-2023`.\n"
-                    f"- Il a été vouch avant le `03-06-2023` par quelqu'un ayant quitté le discord.",
+                    f"- Il a été vouch avant le `03-06-2023` par quelqu'un ayant quitté le discord.\n"
+                    f"- Il a rejoint le discord le `{personne.joined_at}`.",
                 )
             )
             logger.info(f"Échec\n")
