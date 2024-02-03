@@ -1,3 +1,8 @@
+# Bot discord créer pour une communauté.
+Projet `abandonné` lors de la fermeture du serveur discord associé.
+
+# =======================================================
+
 DiscordBot
 Prerequisites
 python >= 3.9 pip
